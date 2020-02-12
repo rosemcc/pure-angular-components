@@ -18,7 +18,7 @@ class MockUoaAccordionWrapper {
     @ViewChild(UoaAccordionComponent, {static: true}) accordion: UoaAccordionComponent;
 }
 
-describe('EmbeddedDetailsComponent', () => {
+describe('UoaAccordionComponent', () => {
   let component: UoaAccordionComponent;
   let fixture: ComponentFixture<MockUoaAccordionWrapper>;
   
@@ -42,7 +42,7 @@ describe('EmbeddedDetailsComponent', () => {
     fixture.detectChanges();
   });
 
-  it('should create', () => {
+  it('should exist when created in another component', () => {
     expect(component).toBeTruthy();
   });
 
