@@ -1,0 +1,36 @@
+@import '../../theme/mixins.scss';
+
+.panel {
+    position: relative;
+    margin-bottom: 3px;
+
+    .panel-thumbtab {
+        display: block;
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 3px;
+        height: 100%;
+        background-color: var(--color-uoa-blue);
+    }
+    &.open .panel-thumbtab {
+        width: 6px;
+    }
+    .panel-heading {
+        background-color: var(--color-white);
+        color: var(--color-uoa-blue);
+        font-size: 18px;
+        font-weight: 600;
+        padding: 14px;
+        cursor: pointer;
+        @include bottom-shadow;
+    }
+    .panel-body {
+        background-color: var(--color-light-grey);
+        color: var(---color-mid-grey);
+        padding: 14px;
+        overflow: hidden;
+        @include bottom-shadow;
+        @include rounded-corners-bottom;
+    }
+}
