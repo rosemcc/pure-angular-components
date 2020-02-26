@@ -37,6 +37,46 @@
           }
         }
       }
+    },
+    "uoa-sso": {
+      "projectType": "library",
+      "root": "projects/uoa-sso",
+      "sourceRoot": "projects/uoa-sso/src",
+      "prefix": "lib",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-ng-packagr:build",
+          "options": {
+            "tsConfig": "projects/uoa-sso/tsconfig.lib.json",
+            "project": "projects/uoa-sso/ng-package.json"
+          },
+          "configurations": {
+            "production": {
+              "tsConfig": "projects/uoa-sso/tsconfig.lib.prod.json"
+            }
+          }
+        },
+        "test": {
+          "builder": "@angular-devkit/build-angular:karma",
+          "options": {
+            "main": "projects/uoa-sso/src/test.ts",
+            "tsConfig": "projects/uoa-sso/tsconfig.spec.json",
+            "karmaConfig": "projects/uoa-sso/karma.conf.js"
+          }
+        },
+        "lint": {
+          "builder": "@angular-devkit/build-angular:tslint",
+          "options": {
+            "tsConfig": [
+              "projects/uoa-sso/tsconfig.lib.json",
+              "projects/uoa-sso/tsconfig.spec.json"
+            ],
+            "exclude": [
+              "**/node_modules/**"
+            ]
+          }
+        }
+      }
     }
   },
   "defaultProject": "uoa-controls",

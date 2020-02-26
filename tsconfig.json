@@ -24,6 +24,10 @@
       ],
       "uoa-controls/*": [
         "dist/uoa-controls/*"
+      ],
+      "uoa-sso": [
+        "dist/uoa-sso/uoa-sso",
+        "dist/uoa-sso"
       ]
     }
   },
