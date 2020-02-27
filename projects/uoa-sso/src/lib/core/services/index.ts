@@ -1,5 +1,5 @@
 export * from './pkce.service'
-export * from './auth.service'
+export * from './cognitoauth.service'
 export * from './urlbuilder.service'
 export * from './storage.service'
 export * from './cognitoconfig'

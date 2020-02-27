@@ -5,12 +5,9 @@ import {
     HttpEvent
 } from "@angular/common/http";
 import { Injectable } from '@angular/core';
-import { Observable } from "rxjs";
+import { Observable, from } from "rxjs";
 
-import { CognitoAuthService } from "../services/auth.service";
-import { CognitoConfig } from '../services/cognitoconfig';
-
-enum
+import { CognitoAuthService, CognitoConfig } from "projects/uoa-sso/src/lib/core/services";
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
@@ -19,19 +16,31 @@ export class AuthInterceptor implements HttpInterceptor {
         private cognitoConfig: CognitoConfig
     ) {
     }
-    intercept( req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+    
+    public intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
         if (this.checkTokenType(req, this.cognitoConfig.bearerTokenUrlFilter)) {
-            // console.log("Intercepted url :::", req.url);
-            let newHeaders = req.headers.append('Authorization', 'Bearer ' + this.authService.getAccessToken());
-           req = req.clone({ headers: newHeaders });
+            return from(this.handleAccessToken(req, next));
         }
         else if (this.checkTokenType(req, this.cognitoConfig.idTokenUrlFilter)) {
-            // console.log("Intercepted url :::", req.url);
-            let newHeaders = req.headers.append('Authorization', this.authService.getIdToken());
-            req = req.clone({ headers: newHeaders });
+            return from(this.handleIdToken(req, next));
         }
+    }
 
-        return next.handle(req);
+    private async handleAccessToken(req: HttpRequest<any>, next: HttpHandler) {
+        const token = 'Bearer ' + await this.authService.getAccessToken();
+        const newReq = this.appendAuthHeader(req, token);
+        return next.handle(newReq).toPromise();
+    }
+
+    private async handleIdToken(req: HttpRequest<any>, next: HttpHandler) {
+        const token = await this.authService.getIdToken();
+        const newReq = this.appendAuthHeader(req, token);
+        return next.handle(newReq).toPromise();
+    }
+
+    private appendAuthHeader(req: HttpRequest<any>, formattedToken: string) {
+        let newHeaders = req.headers.append('Authorization', formattedToken);
+        return req.clone({ headers: newHeaders });
     }
 
     private checkTokenType(req: HttpRequest<any>, tokenFilters: string[]): boolean {

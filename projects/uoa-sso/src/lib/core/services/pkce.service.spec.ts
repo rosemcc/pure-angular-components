@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 
-import { PkceService } from './auth.pkce.service';
+import { PkceService } from './pkce.service';
 
 describe('Auth.Pkce.ServiceService', () => {
   let service: PkceService;
