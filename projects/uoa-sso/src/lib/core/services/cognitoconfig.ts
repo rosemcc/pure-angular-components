@@ -11,4 +11,6 @@ export class CognitoConfig {
     public redirectUri: string;
     public codeChallengeMethod: string;
     public scopes: string;
+    public bearerTokenUrlFilter: string[];
+    public idTokenUrlFilter: string[];
 }

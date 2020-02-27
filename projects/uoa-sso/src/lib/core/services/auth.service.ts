@@ -2,10 +2,8 @@ import { Injectable } from '@angular/core';
 import { Router } from "@angular/router";
 import { Location } from '@angular/common';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
-import { PkceService, ChallengePair } from './auth.pkce.service';
-import { AuthUrlBuilder } from './auth.urlbuilder.service';
-import { OAuth2Urls } from '../interfaces/oauth2.interface';
-import { CognitoConfig } from '../interfaces/cognitoconfig';
+import { OAuth2Urls } from 'projects/uoa-sso/src/lib/core/interfaces';
+import { StorageService, CognitoConfig, PkceService, ChallengePair, UrlBuilder } from 'projects/uoa-sso/src/lib/core/services';
 
 @Injectable({
   providedIn: 'root'
@@ -19,16 +17,17 @@ export class CognitoAuthService {
     private httpClient: HttpClient,
     private router: Router,
     private location: Location,
-    private authUrlBuilder: AuthUrlBuilder,
+    private urlBuilder: UrlBuilder,
     private pkceService: PkceService,
-    private cognitoConfig: CognitoConfig
+    private cognitoConfig: CognitoConfig,
+    private storageService: StorageService
   ) {
-    this.codeChallenge = this.pkceService.generateChallengePair();
-    this.oAuth2Urls = authUrlBuilder.buildCognitoUrls(cognitoConfig, this.codeChallenge);
+    this.codeChallenge = pkceService.generateChallengePair();
+    this.oAuth2Urls = urlBuilder.buildCognitoUrls(cognitoConfig, this.codeChallenge);
   };
 
-  public isAuthenticated() {
-    let expiresAt = localStorage.getItem('expiresAt');
+  public async isAuthenticated() {
+    let expiresAt = await this.storageService.getItem('expiresAt');
 
     // be careful expiresAt is in seconds and Date.now() in milliseconds
     if (expiresAt && ((Number(expiresAt) * 1000) > (Date.now() - 10000))) {
@@ -42,54 +41,51 @@ export class CognitoAuthService {
     let decodedToken = this.parseJwt(tokens.id_token);
 
     // store auth data in storage
-    localStorage.setItem('refreshToken', tokens.refresh_token);
-    localStorage.setItem('accessToken', tokens.access_token);
-    localStorage.setItem('idToken', tokens.id_token);
-    localStorage.setItem('expiresAt', decodedToken.exp);
-
+    this.storageService.setItem('refreshToken', tokens.refresh_token);
+    this.storageService.setItem('accessToken', tokens.access_token);
+    this.storageService.setItem('idToken', tokens.id_token);
+    this.storageService.setItem('expiresAt', decodedToken.exp);
   }
 
-  public getAccessToken() {
+  public async getAccessToken() {
     if (this.isAuthenticated()) {
-      return localStorage.getItem('accessToken');
+      return this.storageService.getItem('accessToken');
     } else {
       // check if we have a refreshToken
-      let refreshToken = localStorage.getItem('refreshToken');
+      let refreshToken = await this.storageService.getItem('refreshToken');
       if (refreshToken) {
-        this.getNewTokensWithResfreshToken(refreshToken);
-        return localStorage.getItem('accessToken');
+        this.getNewTokensWithRefreshToken(refreshToken);
+        return this.storageService.getItem('accessToken');
       }
       else {
-        console.log('Access token OK, going back to target');
-        this.router.navigate([localStorage.getItem('targetUrl')]);
+        this.router.navigate([await this.storageService.getItem('targetUrl')]);
       }
     }
   }
 
-  public getIdToken() {
+  public async getIdToken() {
     if (this.isAuthenticated()) {
-      return localStorage.getItem('idToken');
+      return this.storageService.getItem('idToken');
     } else {
-      let refreshToken = JSON.parse(localStorage.getItem('refreshToken'));
+      let refreshToken = JSON.parse(await this.storageService.getItem('refreshToken'));
       if (refreshToken) {
-        this.getNewTokensWithResfreshToken(refreshToken);
-        return localStorage.getItem('idToken');
+        this.getNewTokensWithRefreshToken(refreshToken);
+        return await this.storageService.getItem('idToken');
       }
       else {
-        console.log('ID token OK, going back to target');
-        this.router.navigate([localStorage.getItem('targetUrl')]);
+        this.router.navigate([await this.storageService.getItem('targetUrl')]);
       }
     }
   }
 
   public logout() {
     this.httpClient.get(this.oAuth2Urls.logoutUrl, {});
-    localStorage.clear();
+    this.clearOurTokens();
   }
 
-  public getUserInfos() {
+  public async getUserInfos() {
     let userInfos: any = {};
-    let idToken = localStorage.getItem('idToken');
+    let idToken = await this.storageService.getItem('idToken');
     if (idToken) {
       let decodedToken = this.parseJwt(idToken);
       userInfos.upi = decodedToken.identities[0].userId;
@@ -119,16 +115,23 @@ export class CognitoAuthService {
 
   ////////////// ######## PRIVATE ######## \\\\\\\\\\\\\\\
 
+  private clearOurTokens() {
+    this.storageService.removeItem('refreshToken');
+    this.storageService.removeItem('accessToken');
+    this.storageService.removeItem('idToken');
+    this.storageService.removeItem('expiresAt');
+    this.storageService.removeItem('targetUrl');
+  }
+
   private parseJwt(token) {
     var base64Url = token.split('.')[1];
     var base64 = base64Url.replace('-', '+').replace('_', '/');
     return JSON.parse(window.atob(base64));
   };
 
-  private getNewTokensWithResfreshToken(refreshToken) {
+  private getNewTokensWithRefreshToken(refreshToken) {
     this.exchangeRefreshTokenForTokens(refreshToken).subscribe(
       (res) => {
-        // console.log("tokens ::: ", JSON.stringify(res));
         this.storeTokens(res);
       },
       (err) => console.log(err)

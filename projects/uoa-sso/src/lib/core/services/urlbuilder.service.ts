@@ -1,12 +1,11 @@
 import { Injectable } from '@angular/core';
-import { OAuth2Urls as OAuth2Urls } from '../interfaces/oauth2.interface';
-import { CognitoConfig } from '../interfaces/cognitoconfig';
-import { ChallengePair } from './auth.pkce.service';
+import { OAuth2Urls } from 'projects/uoa-sso/src/lib/core/interfaces';
+import { CognitoConfig, ChallengePair } from 'projects/uoa-sso/src/lib/core/services';
 
 @Injectable({
     providedIn: 'root'
 })
-export class AuthUrlBuilder {
+export class UrlBuilder {
 
     buildCognitoUrls(config: CognitoConfig, codeChallenge: ChallengePair): OAuth2Urls {
         const authorizeEndpoint = 'https://' + config.cognitoDomain + '.auth.' + config.cognitoAwsRegion + '.amazoncognito.com/oauth2/authorize';

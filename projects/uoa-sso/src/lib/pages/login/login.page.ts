@@ -32,6 +32,8 @@ export class LoginPage {
   ) {
     platform.ready().then(() => {
 
+      // TODO: put all this in the service
+      
       if (this.authService.isAuthenticated()) {
         // you should not come to this point by navigating by yourself, so redirect user back
         console.log('Authenticated. Going back');
