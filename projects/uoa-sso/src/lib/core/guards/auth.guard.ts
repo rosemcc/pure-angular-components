@@ -1,7 +1,7 @@
 import { Injectable } from "@angular/core";
 import { Router, CanActivate, ActivatedRouteSnapshot } from "@angular/router";
 import { Location } from '@angular/common';
-import { CognitoAuthService } from "./auth.service";
+import { CognitoAuthService } from "../services";
 
 
 @Injectable({

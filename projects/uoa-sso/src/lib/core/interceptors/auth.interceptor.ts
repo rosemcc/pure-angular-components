@@ -7,7 +7,7 @@ import {
 import { Injectable } from '@angular/core';
 import { Observable, from } from "rxjs";
 
-import { CognitoAuthService, CognitoConfig } from "projects/uoa-sso/src/lib/core/services";
+import { CognitoAuthService, CognitoConfig } from "../services";
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
