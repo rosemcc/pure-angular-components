@@ -52,29 +52,6 @@ export class LoginPage {
     });
   }
 
-
-  private exchangeCodeForToken(code, codeVerifier) {
-    return new Promise((resolve, reject) => {
-      // console.log("exchangeCodeForToken:::code::: ", code);
-      if (code && codeVerifier) {
-        this.authService.exchangeCodeForTokens(code, codeVerifier)
-          .subscribe(
-            (res) => {
-              this.authService.storeTokens(res);
-              // console.log("tokens ::: ", JSON.stringify(res));
-              localStorage.removeItem('codeVerifier');
-              resolve(true);
-            },
-            (err) => {
-              this.router.navigate(['/401'], { queryParams: { error: err } });
-              console.log(err)
-            }
-          );
-      }
-    });
-
-  }
-
 }
 
 

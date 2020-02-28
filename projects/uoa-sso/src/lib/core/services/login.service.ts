@@ -37,26 +37,31 @@ export class LoginService {
     //     });
     // }
 
-    public async webLogin() {
+    public async isAuthenticated() {
+        return this.authService.isAuthenticated();
+    }
+
+    public async doWebLogin() {
         this.activatedRoute.queryParams.subscribe(async params => {
             // if (params['error_description']) {
             //   this.router.navigate(['/401'], { queryParams: { error: params['error_description'] } });
             // }
     
             if (params['code']) {
-    
-              let codeVerifier = await this.storageService.getItem('codeVerifier');
-    
-              await this.exchangeCodeForToken(params['code'], codeVerifier);
-    
-              console.log('Got a code. Going back to target');
-              this.router.navigate([localStorage.getItem('targetUrl')]);
-    
+
+                // inbound navigation
+                let codeVerifier = await this.storageService.getItem('codeVerifier');
+                await this.exchangeCodeForToken(params['code'], codeVerifier);
+                console.log('Got a code. Going back to target');
+                this.router.createUrlTree([this.storageService.getItem('targetUrl')]);
+
             } else {
-              localStorage.setItem('codeVerifier', this.authService.codeChallenge.codeVerifier);
-              window.open(this.authService.oAuth2Urls.authorizeUrl, '_self');
+
+                // outbound navigation
+                this.storageService.setItem('codeVerifier', this.authService.codeChallenge.codeVerifier);
+                window.open(this.authService.oAuth2Urls.authorizeUrl, '_self');
             }
-          });
+        });
     }
         
     private exchangeCodeForToken(code, codeVerifier) {
@@ -70,7 +75,7 @@ export class LoginService {
                         resolve(true);
                     },
                     (err) => {
-                        this.router.navigate(['/401'], { queryParams: { error: err } });
+                        //this.router.navigate(['/401'], { queryParams: { error: err } });
                         console.log(err)
                     }
                 );
