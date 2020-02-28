@@ -1,0 +1,75 @@
+<ion-content>
+  <div class="content-wrapper">
+    <div class="inner-content">
+      <header></header>
+      <div class="header-padding-no-progress-bar margin-h-10vw enlarged-font">
+        <div class="position-relative">
+          <div *ngIf="errorCode=== 'ErrorCode400' || errorCode=== 'ErrorCode409'">
+            <h1 class="error-h1 margin-top-xl bold">Bad Request</h1>
+            <p class="margin-top-l">The system is currently unavailable, we apologise for any inconvenience</p>
+            <p class="margin-top-m">Please try again later.</p>
+          </div>
+          <div *ngIf="errorCode=== 'ErrorCode403'">
+            <h1 class="error-h1 margin-top-xl bold">Access Restricted</h1>
+            <p class="margin-top-l">You do not have permission to view this page. Please ensure that you are logged in and try again.</p>
+            <p class="margin-top-m">
+              If you still don't have access and believe you are seeing this page in error, contact us on
+              <a href="tel:0800 61 62 63" target="_blank">0800 61 62 63 (within New Zealand)</a> or
+              <a href="tel:+64 9 373 7513" target="_blank">+64 9 373 7513 (outside New Zealand)</a> or at
+              <a href="mailto:studentinfo@auckland.ac.nz" target="_blank">studentinfo@auckland.ac.nz</a>.
+            </p>
+          </div>
+          <div *ngIf="errorCode=== 'ErrorCode404'">
+            <h1 class="error-h1 margin-top-xl bold">Page not found</h1>
+            <p class="margin-top-l">
+              We're sorry that you've encountered an error, please try going back in you browser or visit
+              <a class="uoa-link" href="https://www.auckland.ac.nz/">auckland.ac.nz</a>
+            </p>
+          </div>
+          <div *ngIf="errorCode=== 'ErrorCode408' || errorCode=== 'ErrorCode504'">
+            <h1 class="error-h1 margin-top-xl bold">Request Timeout</h1>
+            <p class="margin-top-l">The request took a little longer than expected to respond.</p>
+            <p class="margin-top-m">Please refresh the page or try again a little later.</p>
+          </div>
+          <div *ngIf="errorCode=== 'ErrorCode500'">
+            <h1 class="error-h1 margin-top-xl bold">Service Unavailable</h1>
+            <p class="margin-top-l">The system is currently unavailable and we apologise for any inconvenience.</p>
+            <p class="margin-top-m">Please try again later.</p>
+          </div>
+          <div *ngIf="errorCode=== 'ErrorCode502'">
+            <h1 class="error-h1 margin-top-xl bold">Connection error</h1>
+            <p class="margin-top-l">The server is unable to respond to the request.</p>
+            <p class="margin-top-m">Please check your internet connection or try again later.</p>
+          </div>
+          <div *ngIf="errorCode=== 'ErrorCode503'">
+            <h1 class="error-h1 margin-top-xl bold">Service Unavailable</h1>
+            <p class="margin-top-l">The system is currently unavailable and we apologise for any inconvenience.</p>
+            <p class="margin-top-m">Please try again later.</p>
+          </div>
+          <div *ngIf="errorCode=== 'ErrorCodeApplicationSubmitted'">
+            <h1 class="error-h1 margin-top-xl bold">Application has changed</h1>
+            <p class="margin-top-l">
+              Your application has been updated since your last visit. Please go to application home page to see the latest status.
+            </p>
+          </div>
+          <div *ngIf="errorCode === 'ErrorCodeDefault'">
+            <h1 class="error-h1 margin-top-xl bold">Application not Found</h1>
+            <p class="margin-top-l">
+              We’re sorry that you encountered an error with our site. If you require help, please call 0800 61 62 63 or email
+              studentinfo@auckland.ac.nz.
+              <!--There was a problem accessing this application. If the problem persists, please contact us.-->
+            </p>
+          </div>
+          <div class="flex-center margin-top-xxl">
+            <div class="full-width max-width-250">
+              <ion-button color="primary" shape="round" expand="full" (click)="pageReinitialize()">
+                Go to home page
+              </ion-button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <footer></footer>
+    </div>
+  </div>
+</ion-content>

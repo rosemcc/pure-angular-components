@@ -28,6 +28,10 @@
       "uoa-sso": [
         "dist/uoa-sso/uoa-sso",
         "dist/uoa-sso"
+      ],
+      "uoa-error-pages": [
+        "dist/uoa-error-pages/uoa-error-pages",
+        "dist/uoa-error-pages"
       ]
     }
   },

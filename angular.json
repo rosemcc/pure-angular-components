@@ -27,13 +27,8 @@
         "lint": {
           "builder": "@angular-devkit/build-angular:tslint",
           "options": {
-            "tsConfig": [
-              "projects/uoa-controls/tsconfig.lib.json",
-              "projects/uoa-controls/tsconfig.spec.json"
-            ],
-            "exclude": [
-              "**/node_modules/**"
-            ]
+            "tsConfig": ["projects/uoa-controls/tsconfig.lib.json", "projects/uoa-controls/tsconfig.spec.json"],
+            "exclude": ["**/node_modules/**"]
           }
         }
       }
@@ -67,13 +62,43 @@
         "lint": {
           "builder": "@angular-devkit/build-angular:tslint",
           "options": {
-            "tsConfig": [
-              "projects/uoa-sso/tsconfig.lib.json",
-              "projects/uoa-sso/tsconfig.spec.json"
-            ],
-            "exclude": [
-              "**/node_modules/**"
-            ]
+            "tsConfig": ["projects/uoa-sso/tsconfig.lib.json", "projects/uoa-sso/tsconfig.spec.json"],
+            "exclude": ["**/node_modules/**"]
+          }
+        }
+      }
+    },
+    "uoa-error-pages": {
+      "projectType": "library",
+      "root": "projects/uoa-error-pages",
+      "sourceRoot": "projects/uoa-error-pages/src",
+      "prefix": "uoa",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-ng-packagr:build",
+          "options": {
+            "tsConfig": "projects/uoa-error-pages/tsconfig.lib.json",
+            "project": "projects/uoa-error-pages/ng-package.json"
+          },
+          "configurations": {
+            "production": {
+              "tsConfig": "projects/uoa-error-pages/tsconfig.lib.prod.json"
+            }
+          }
+        },
+        "test": {
+          "builder": "@angular-devkit/build-angular:karma",
+          "options": {
+            "main": "projects/uoa-error-pages/src/test.ts",
+            "tsConfig": "projects/uoa-error-pages/tsconfig.spec.json",
+            "karmaConfig": "projects/uoa-error-pages/karma.conf.js"
+          }
+        },
+        "lint": {
+          "builder": "@angular-devkit/build-angular:tslint",
+          "options": {
+            "tsConfig": ["projects/uoa-error-pages/tsconfig.lib.json", "projects/uoa-error-pages/tsconfig.spec.json"],
+            "exclude": ["**/node_modules/**"]
           }
         }
       }
