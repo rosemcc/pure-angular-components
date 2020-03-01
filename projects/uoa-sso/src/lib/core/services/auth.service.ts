@@ -8,7 +8,7 @@ import { StorageService, CognitoConfig, PkceService, ChallengePair, UrlBuilder }
 @Injectable({
   providedIn: 'root'
 })
-export class CognitoAuthService {
+export class AuthService {
   public oAuth2Urls: OAuth2Urls;
   public codeChallenge: ChallengePair;
 
