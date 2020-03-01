@@ -3,7 +3,11 @@ import { Router } from "@angular/router";
 import { Location } from '@angular/common';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { OAuth2Urls } from 'projects/uoa-sso/src/lib/core/interfaces';
-import { StorageService, CognitoConfig, PkceService, ChallengePair, UrlBuilder } from 'projects/uoa-sso/src/lib/core/services';
+import { StorageService } from './storage.service';
+import { CognitoConfig } from './cognitoconfig';
+import { PkceService } from './pkce.service';
+import { ChallengePair } from './pkce.service';
+import { UrlBuilder } from './urlbuilder.service';
 
 @Injectable({
   providedIn: 'root'
@@ -48,8 +52,9 @@ export class CognitoAuthService {
   }
 
   public async getAccessToken() {
-    if (this.isAuthenticated()) {
-      return this.storageService.getItem('accessToken');
+    
+    if (await this.isAuthenticated()) {
+      return await this.storageService.getItem('accessToken');
     } else {
       // check if we have a refreshToken
       let refreshToken = await this.storageService.getItem('refreshToken');
@@ -58,13 +63,15 @@ export class CognitoAuthService {
         return this.storageService.getItem('accessToken');
       }
       else {
+        console.log(await this.storageService.getItem('targetUrl'))
         this.router.navigate([await this.storageService.getItem('targetUrl')]);
       }
     }
   }
 
   public async getIdToken() {
-    if (this.isAuthenticated()) {
+    console.log("getIdToken")
+    if (await this.isAuthenticated()) {
       return this.storageService.getItem('idToken');
     } else {
       let refreshToken = JSON.parse(await this.storageService.getItem('refreshToken'));
