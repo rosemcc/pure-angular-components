@@ -1,15 +1,14 @@
 import { Injectable } from '@angular/core';
-import { Router } from "@angular/router";
+import { Router } from '@angular/router';
 import { Location } from '@angular/common';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
-import { OAuth2Urls } from 'projects/uoa-sso/src/lib/core/interfaces';
-import { StorageService, CognitoConfig, PkceService, ChallengePair, UrlBuilder } from 'projects/uoa-sso/src/lib/core/services';
+import { OAuth2Urls } from '../interfaces';
+import { StorageService, CognitoConfig, PkceService, ChallengePair, UrlBuilder } from '.';
 
 @Injectable({
   providedIn: 'root'
 })
 export class CognitoAuthService {
-
   public oAuth2Urls: OAuth2Urls;
   public codeChallenge: ChallengePair;
 
@@ -24,13 +23,13 @@ export class CognitoAuthService {
   ) {
     this.codeChallenge = pkceService.generateChallengePair();
     this.oAuth2Urls = urlBuilder.buildCognitoUrls(cognitoConfig, this.codeChallenge);
-  };
+  }
 
   public async isAuthenticated() {
     let expiresAt = await this.storageService.getItem('expiresAt');
 
     // be careful expiresAt is in seconds and Date.now() in milliseconds
-    if (expiresAt && ((Number(expiresAt) * 1000) > (Date.now() - 10000))) {
+    if (expiresAt && Number(expiresAt) * 1000 > Date.now() - 10000) {
       return true;
     } else {
       return false;
@@ -56,8 +55,7 @@ export class CognitoAuthService {
       if (refreshToken) {
         this.getNewTokensWithRefreshToken(refreshToken);
         return this.storageService.getItem('accessToken');
-      }
-      else {
+      } else {
         this.router.navigate([await this.storageService.getItem('targetUrl')]);
       }
     }
@@ -71,8 +69,7 @@ export class CognitoAuthService {
       if (refreshToken) {
         this.getNewTokensWithRefreshToken(refreshToken);
         return await this.storageService.getItem('idToken');
-      }
-      else {
+      } else {
         this.router.navigate([await this.storageService.getItem('targetUrl')]);
       }
     }
@@ -98,7 +95,7 @@ export class CognitoAuthService {
 
   public exchangeCodeForTokens(code, codeVerifier) {
     let headers = new HttpHeaders({
-      "Content-Type": "application/x-www-form-urlencoded"
+      'Content-Type': 'application/x-www-form-urlencoded'
     });
 
     const body = new HttpParams()
@@ -106,12 +103,9 @@ export class CognitoAuthService {
       .set('redirect_uri', this.oAuth2Urls.redirectUrl)
       .set('code', code)
       .set('code_verifier', codeVerifier)
-      .set('grant_type', "authorization_code");
-    return this.httpClient.post(this.oAuth2Urls.tokenEndpoint, body.toString(),
-      { headers: headers });
+      .set('grant_type', 'authorization_code');
+    return this.httpClient.post(this.oAuth2Urls.tokenEndpoint, body.toString(), { headers: headers });
   }
-
-
 
   ////////////// ######## PRIVATE ######## \\\\\\\\\\\\\\\
 
@@ -124,32 +118,28 @@ export class CognitoAuthService {
   }
 
   private parseJwt(token) {
-    var base64Url = token.split('.')[1];
-    var base64 = base64Url.replace('-', '+').replace('_', '/');
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace('-', '+').replace('_', '/');
     return JSON.parse(window.atob(base64));
-  };
+  }
 
   private getNewTokensWithRefreshToken(refreshToken) {
     this.exchangeRefreshTokenForTokens(refreshToken).subscribe(
-      (res) => {
-        this.storeTokens(res);
-      },
-      (err) => console.log(err)
+      res => this.storeTokens(res),
+      err => console.log(err)
     );
   }
 
   private exchangeRefreshTokenForTokens(refreshToken) {
     let headers = new HttpHeaders({
-      "Content-Type": "application/x-www-form-urlencoded"
+      'Content-Type': 'application/x-www-form-urlencoded'
     });
 
     const body = new HttpParams()
       .set('refresh_token', refreshToken)
       .set('client_id', this.cognitoConfig.cognitoClientId)
-      .set('grant_type', "refresh_token");
+      .set('grant_type', 'refresh_token');
 
-    return this.httpClient.post(this.oAuth2Urls.tokenEndpoint, body.toString(),
-      { headers: headers });
+    return this.httpClient.post(this.oAuth2Urls.tokenEndpoint, body.toString(), { headers });
   }
-
 }
