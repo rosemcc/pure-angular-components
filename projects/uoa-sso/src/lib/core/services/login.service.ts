@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
-import { CognitoAuthService } from './cognitoauth.service';
+import { AuthService } from './auth.service';
 import { StorageService } from './storage.service';
 
 @Injectable({
@@ -11,7 +11,7 @@ export class LoginService {
     constructor(
         private activatedRoute: ActivatedRoute,
         private router: Router,
-        private authService: CognitoAuthService,
+        private authService: AuthService,
         private storageService: StorageService)
     {
     }
@@ -47,39 +47,21 @@ export class LoginService {
             //   this.router.navigate(['/401'], { queryParams: { error: params['error_description'] } });
             // }
     
-            if (params['code']) {
+            // if (params['code']) {
 
-                // inbound navigation
-                let codeVerifier = await this.storageService.getItem('codeVerifier');
-                await this.exchangeCodeForToken(params['code'], codeVerifier);
-                console.log('Got a code. Going back to target');
-                this.router.createUrlTree([this.storageService.getItem('targetUrl')]);
+            //     // inbound navigation
+            //     let codeVerifier = await this.storageService.getItem('codeVerifier');
+            //     await this.exchangeCodeForToken(params['code'], codeVerifier);
+            //     console.log('Got a code. Going back to target');
+            //     this.router.createUrlTree([this.storageService.getItem('targetUrl')]);
 
-            } else {
+            // } else {
 
-                // outbound navigation
-                this.storageService.setItem('codeVerifier', this.authService.codeChallenge.codeVerifier);
-                window.open(this.authService.oAuth2Urls.authorizeUrl, '_self');
-            }
+            //     // outbound navigation
+            //     this.storageService.setItem('codeVerifier', this.authService.codeChallenge.codeVerifier);
+            //     window.open(this.authService.oAuth2Urls.authorizeUrl, '_self');
+            // }
         });
     }
         
-    private exchangeCodeForToken(code, codeVerifier) {
-        return new Promise((resolve, reject) => {
-            if (code && codeVerifier) {
-                this.authService.exchangeCodeForTokens(code, codeVerifier)
-                .subscribe(
-                    (res) => {
-                        this.authService.storeTokens(res);
-                        localStorage.removeItem('codeVerifier');
-                        resolve(true);
-                    },
-                    (err) => {
-                        //this.router.navigate(['/401'], { queryParams: { error: err } });
-                        console.log(err)
-                    }
-                );
-            }
-        });
-    }
 }

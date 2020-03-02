@@ -2,13 +2,23 @@ import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent } from '@angular/c
 import { Injectable } from '@angular/core';
 import { Observable, from } from 'rxjs';
 
-import { CognitoAuthService, CognitoConfig } from '../services';
+import { AuthService, CognitoConfig, StorageService } from '../services';
+import { Router } from '@angular/router';
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
-  constructor(private authService: CognitoAuthService, private cognitoConfig: CognitoConfig) {}
+  constructor(
+    private authService: AuthService,
+    private cognitoConfig: CognitoConfig,
+    private storageService: StorageService,
+    private route: Router
+  ) {}
 
   public intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+
+    // store current url as the last visited URL (for login redirection target)
+    this.storageService.setItem('targetUrl', this.route.url);
+
     if (this.checkTokenType(req, this.cognitoConfig.bearerTokenUrlFilter)) {
       return from(this.handleAccessToken(req, next));
     } else if (this.checkTokenType(req, this.cognitoConfig.idTokenUrlFilter)) {
