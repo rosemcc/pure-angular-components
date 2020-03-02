@@ -50,9 +50,8 @@ export class LoginService {
 
                 // inbound navigation
                 const codeVerifier = await this.storageService.getItem('codeVerifier');
-                const observable = this.authService.exchangeCodeForTokens(code, codeVerifier);
-                observable.subscribe((res) => {
-                    console.log(res);
+                this.authService.exchangeCodeForTokens(code, codeVerifier).subscribe((res) => {
+                    this.router.navigate([this.storageService.getItem('targetUrl')]);
                 });
 
                 // .then((res) => {
