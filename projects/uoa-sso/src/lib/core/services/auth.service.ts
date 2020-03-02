@@ -4,6 +4,7 @@ import { Location } from '@angular/common';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { OAuth2Urls } from '../interfaces';
 import { StorageService, CognitoConfig, PkceService, ChallengePair, UrlBuilder } from '.';
+import { Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -97,7 +98,7 @@ export class AuthService {
     return userInfos;
   }
 
-  public exchangeCodeForTokens(code, codeVerifier) {
+  public exchangeCodeForTokens(code, codeVerifier): Observable<any> {
     let headers = new HttpHeaders({
       'Content-Type': 'application/x-www-form-urlencoded'
     });
@@ -108,7 +109,8 @@ export class AuthService {
       .set('code', code)
       .set('code_verifier', codeVerifier)
       .set('grant_type', 'authorization_code');
-    return this.httpClient.post(this.oAuth2Urls.tokenEndpoint, body.toString(), { headers: headers });
+
+    return this.httpClient.post(this.oAuth2Urls.tokenEndpoint, body.toString(), { headers });
   }
 
   ////////////// ######## PRIVATE ######## \\\\\\\\\\\\\\\

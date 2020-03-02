@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AuthService } from './auth.service';
 import { StorageService } from './storage.service';
+import { filter } from 'rxjs/operators';
 
 @Injectable({
     providedIn: 'root'
@@ -42,26 +43,34 @@ export class LoginService {
     }
 
     public async doWebLogin() {
-        this.activatedRoute.queryParams.subscribe(async params => {
-            // if (params['error_description']) {
-            //   this.router.navigate(['/401'], { queryParams: { error: params['error_description'] } });
-            // }
+
+        const code = new URL(window.location.href).searchParams.get('code');
+
+            if (code) {
+
+                // inbound navigation
+                const codeVerifier = await this.storageService.getItem('codeVerifier');
+                const observable = this.authService.exchangeCodeForTokens(code, codeVerifier);
+                observable.subscribe((res) => {
+                    console.log(res);
+                });
+
+                // .then((res) => {
+                //     console.log('Got a code. Going back to target');
+                //     //this.router.navigate([this.storageService.getItem('targetUrl')]);
+                // }, (err) => {
+                //     console.error(err)
+                // });
     
-            // if (params['code']) {
+            } else {
+    
+                // outbound navigation
+                if (!(await this.authService.isAuthenticated())) {
+                    this.storageService.setItem('codeVerifier', this.authService.codeChallenge.codeVerifier);
+                    window.open(this.authService.oAuth2Urls.authorizeUrl, '_self');
+                }
+            }
 
-            //     // inbound navigation
-            //     let codeVerifier = await this.storageService.getItem('codeVerifier');
-            //     await this.exchangeCodeForToken(params['code'], codeVerifier);
-            //     console.log('Got a code. Going back to target');
-            //     this.router.createUrlTree([this.storageService.getItem('targetUrl')]);
-
-            // } else {
-
-            //     // outbound navigation
-            //     this.storageService.setItem('codeVerifier', this.authService.codeChallenge.codeVerifier);
-            //     window.open(this.authService.oAuth2Urls.authorizeUrl, '_self');
-            // }
-        });
     }
         
 }

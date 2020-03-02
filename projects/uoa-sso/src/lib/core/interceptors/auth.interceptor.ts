@@ -24,6 +24,8 @@ export class AuthInterceptor implements HttpInterceptor {
     } else if (this.checkTokenType(req, this.cognitoConfig.idTokenUrlFilter)) {
       return from(this.handleIdToken(req, next));
     }
+
+    return next.handle(req);
   }
 
   private async handleAccessToken(req: HttpRequest<any>, next: HttpHandler) {
