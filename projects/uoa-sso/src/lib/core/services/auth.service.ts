@@ -5,14 +5,12 @@ import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { OAuth2Urls } from '../interfaces';
 import { StorageService, CognitoConfig, PkceService, ChallengePair, UrlBuilder } from '.';
 import { Observable } from 'rxjs';
+import { tap } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  public oAuth2Urls: OAuth2Urls;
-  public codeChallenge: ChallengePair;
-
   constructor(
     private httpClient: HttpClient,
     private router: Router,
@@ -22,8 +20,6 @@ export class AuthService {
     private cognitoConfig: CognitoConfig,
     private storageService: StorageService
   ) {
-    this.codeChallenge = pkceService.generateChallengePair();
-    this.oAuth2Urls = urlBuilder.buildCognitoUrls(cognitoConfig, this.codeChallenge);
   }
 
   public async isAuthenticated() {
@@ -80,8 +76,10 @@ export class AuthService {
     }
   }
 
-  public logout() {
-    this.httpClient.get(this.oAuth2Urls.logoutUrl, {});
+  public async logout() {
+    const codeChallenge = await this.pkceService.getChallengePair();
+    const oAuth2Urls = this.urlBuilder.buildCognitoUrls(this.cognitoConfig, codeChallenge);
+    this.httpClient.get(oAuth2Urls.logoutUrl, {});
     this.clearOurTokens();
   }
 
@@ -98,19 +96,34 @@ export class AuthService {
     return userInfos;
   }
 
-  public exchangeCodeForTokens(code, codeVerifier): Observable<any> {
+  public async exchangeCodeForTokens(code, codeVerifier) {
+    const codeChallenge = await this.pkceService.getChallengePair();
+    const oAuth2Urls = this.urlBuilder.buildCognitoUrls(this.cognitoConfig, codeChallenge);
+
     let headers = new HttpHeaders({
       'Content-Type': 'application/x-www-form-urlencoded'
     });
 
     const body = new HttpParams()
       .set('client_id', this.cognitoConfig.cognitoClientId)
-      .set('redirect_uri', this.oAuth2Urls.redirectUrl)
+      .set('redirect_uri', oAuth2Urls.redirectUrl)
       .set('code', code)
       .set('code_verifier', codeVerifier)
       .set('grant_type', 'authorization_code');
 
-    return this.httpClient.post(this.oAuth2Urls.tokenEndpoint, body.toString(), { headers });
+    return this.httpClient.post(oAuth2Urls.tokenEndpoint, body.toString(), { headers }).pipe(tap(res => {
+      // remove one-time use pkce
+      this.storageService.removeItem('code');
+      this.storageService.removeItem('codeVerifier');
+      // store more permanent tokens
+      this.storeTokens(res);
+    }));
+  }
+
+  public async navigateToAuthUrl() {
+    const codeChallenge = await this.pkceService.getChallengePair();
+    const oAuth2Urls = this.urlBuilder.buildCognitoUrls(this.cognitoConfig, codeChallenge);
+    window.open(oAuth2Urls.authorizeUrl, '_self');
   }
 
   ////////////// ######## PRIVATE ######## \\\\\\\\\\\\\\\
@@ -121,6 +134,8 @@ export class AuthService {
     this.storageService.removeItem('idToken');
     this.storageService.removeItem('expiresAt');
     this.storageService.removeItem('targetUrl');
+    this.storageService.removeItem('code');
+    this.storageService.removeItem('codeVerifier');
   }
 
   private parseJwt(token) {
@@ -129,14 +144,17 @@ export class AuthService {
     return JSON.parse(window.atob(base64));
   }
 
-  private getNewTokensWithRefreshToken(refreshToken) {
-    this.exchangeRefreshTokenForTokens(refreshToken).subscribe(
-      res => this.storeTokens(res),
-      err => console.log(err)
-    );
+  private async getNewTokensWithRefreshToken(refreshToken) {
+    (await this.exchangeRefreshTokenForTokens(refreshToken)).subscribe(
+        res => this.storeTokens(res),
+        err => console.log(err)
+      );
   }
 
-  private exchangeRefreshTokenForTokens(refreshToken) {
+  private async exchangeRefreshTokenForTokens(refreshToken) {
+    const codeChallenge = await this.pkceService.getChallengePair();
+    const oAuth2Urls = this.urlBuilder.buildCognitoUrls(this.cognitoConfig, codeChallenge);
+
     let headers = new HttpHeaders({
       'Content-Type': 'application/x-www-form-urlencoded'
     });
@@ -146,6 +164,7 @@ export class AuthService {
       .set('client_id', this.cognitoConfig.cognitoClientId)
       .set('grant_type', 'refresh_token');
 
-    return this.httpClient.post(this.oAuth2Urls.tokenEndpoint, body.toString(), { headers });
+    return this.httpClient.post(oAuth2Urls.tokenEndpoint, body.toString(), { headers });
   }
+
 }

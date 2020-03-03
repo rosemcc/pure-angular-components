@@ -50,23 +50,16 @@ export class LoginService {
 
                 // inbound navigation
                 const codeVerifier = await this.storageService.getItem('codeVerifier');
-                this.authService.exchangeCodeForTokens(code, codeVerifier).subscribe((res) => {
-                    this.router.navigate([this.storageService.getItem('targetUrl')]);
+                (await this.authService.exchangeCodeForTokens(code, codeVerifier)).subscribe(async (res) => {
+                    const targetRoute = await this.storageService.getItem('targetUrl');
+                    this.router.navigate([targetRoute]);
                 });
 
-                // .then((res) => {
-                //     console.log('Got a code. Going back to target');
-                //     //this.router.navigate([this.storageService.getItem('targetUrl')]);
-                // }, (err) => {
-                //     console.error(err)
-                // });
-    
             } else {
     
                 // outbound navigation
                 if (!(await this.authService.isAuthenticated())) {
-                    this.storageService.setItem('codeVerifier', this.authService.codeChallenge.codeVerifier);
-                    window.open(this.authService.oAuth2Urls.authorizeUrl, '_self');
+                    this.authService.navigateToAuthUrl();
                 }
             }
 
