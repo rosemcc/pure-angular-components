@@ -1,6 +1,53 @@
-# UoaSso
+# Uoa Single Sign-On
 
-This library was generated with [Angular CLI](https://github.com/angular/angular-cli) version 9.0.1.
+## Usage
+
+Place library as a peer dependency in the same parent folder of your repo. Alternatively use npm to link to a built dist version of the library.
+
+In your app.module.ts import these two, eg:
+
+`import { CognitoConfig, CoreModule } from '../../../uoa-common/projects/uoa-sso/src/public-api'`
+
+Include CoreModule in your imports[], but include CognitoConfig as a provider:
+
+`{ provide: CognitoConfig, useClass: AppAuthConfig }`
+
+You will need to create this AppAuthConfig class, which assigns each property from your environment file. here is an example:
+
+```
+import { CognitoConfig } from '../../../uoa-common/projects/uoa-sso/src/public-api';
+import { environment } from '../environments/environment';
+import { Injectable } from '@angular/core';
+
+@Injectable({
+    providedIn: 'root'
+})
+export class AppAuthConfig extends CognitoConfig {
+    constructor() {
+        super();
+        this.codeChallengeMethod = environment.auth.codeChallengeMethod;
+        this.cognitoAwsRegion = environment.auth.cognitoAwsRegion;
+        this.cognitoClientId = environment.auth.cognitoClientId;
+        this.cognitoDomain = environment.auth.cognitoDomain;
+        this.cognitoUserPoolId = environment.auth.cognitoUserPoolId;
+        this.scopes = environment.auth.scopes;
+        this.redirectUri = environment.auth.redirectUri;
+        this.bearerTokenUrlFilter = environment.privateUrlKeyWords.whoNeedBearerToken;
+        this.idTokenUrlFilter = environment.privateUrlKeyWords.whoNeedIdToken;
+    }
+}
+```
+
+Now from your app component you can hook in to the redirects of the library:
+
+```
+ngOnInit() {
+    this.platform.ready().then(() => {
+        const inboundAuthCode = new URL(window.location.href).searchParams.get('code');
+        this.loginService.doWebLogin(inboundAuthCode);
+    })
+}
+```
 
 ## Code scaffolding
 
