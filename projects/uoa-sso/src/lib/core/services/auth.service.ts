@@ -112,10 +112,7 @@ export class AuthService {
       .set('grant_type', 'authorization_code');
 
     return this.httpClient.post(oAuth2Urls.tokenEndpoint, body.toString(), { headers }).pipe(tap(res => {
-      // remove one-time use pkce
-      this.storageService.removeItem('code');
-      this.storageService.removeItem('codeVerifier');
-      // store more permanent tokens
+      this.pkceService.clearChallengeFromStorage();
       this.storeTokens(res);
     }));
   }
@@ -133,8 +130,7 @@ export class AuthService {
     this.storageService.removeItem('idToken');
     this.storageService.removeItem('expiresAt');
     this.storageService.removeItem('targetUrl');
-    this.storageService.removeItem('code');
-    this.storageService.removeItem('codeVerifier');
+    this.pkceService.clearChallengeFromStorage();
   }
 
   private parseJwt(token) {

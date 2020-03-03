@@ -10,38 +10,32 @@ import { filter } from 'rxjs/operators';
 export class LoginService {
 
     constructor(
-        private activatedRoute: ActivatedRoute,
         private router: Router,
         private authService: AuthService,
         private storageService: StorageService)
     {
     }
-    
+
     public async isAuthenticated() {
         return this.authService.isAuthenticated();
     }
 
-    public async doWebLogin() {
+    public async doWebLogin(inboundAuthCode?: string) {
+        if (inboundAuthCode) {
 
-        const code = new URL(window.location.href).searchParams.get('code');
+            // inbound navigation
+            const codeVerifier = await this.storageService.getItem('codeVerifier');
+            (await this.authService.exchangeCodeForTokens(inboundAuthCode, codeVerifier)).subscribe(async (res) => {
+                const targetRoute = await this.storageService.getItem('targetUrl');
+                this.router.navigate([targetRoute]);
+            });
 
-            if (code) {
+        } else {
 
-                // inbound navigation
-                const codeVerifier = await this.storageService.getItem('codeVerifier');
-                (await this.authService.exchangeCodeForTokens(code, codeVerifier)).subscribe(async (res) => {
-                    const targetRoute = await this.storageService.getItem('targetUrl');
-                    this.router.navigate([targetRoute]);
-                });
-
-            } else {
-    
-                // outbound navigation
-                if (!(await this.authService.isAuthenticated())) {
-                    this.authService.navigateToAuthUrl();
-                }
+            // outbound navigation
+            if (!(await this.authService.isAuthenticated())) {
+                this.authService.navigateToAuthUrl();
             }
-
+        }
     }
-        
 }

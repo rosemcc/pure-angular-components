@@ -37,10 +37,15 @@ export class PkceService {
           this.challengePair$.next({ codeChallenge, codeVerifier });
         }
       });
-      
+
     }
 
     return this.challengePair$;
+  }
+
+  public clearChallengeFromStorage() {
+    this.storageService.removeItem('code');
+    this.storageService.removeItem('codeVerifier');
   }
 
   private async challengeFromStorage() {
