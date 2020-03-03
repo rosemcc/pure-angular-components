@@ -1,25 +1,27 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
-import { Location } from '@angular/common';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { OAuth2Urls } from '../interfaces';
 import { StorageService, CognitoConfig, PkceService, ChallengePair, UrlBuilder } from '.';
-import { Observable } from 'rxjs';
+import { Observable, BehaviorSubject } from 'rxjs';
 import { tap } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
+
+  private codeChallengePair: BehaviorSubject<ChallengePair>;
+
   constructor(
     private httpClient: HttpClient,
     private router: Router,
-    private location: Location,
     private urlBuilder: UrlBuilder,
     private pkceService: PkceService,
     private cognitoConfig: CognitoConfig,
     private storageService: StorageService
   ) {
+    this.codeChallengePair = this.pkceService.getChallengePair();
   }
 
   public async isAuthenticated() {
@@ -77,8 +79,7 @@ export class AuthService {
   }
 
   public async logout() {
-    const codeChallenge = await this.pkceService.getChallengePair();
-    const oAuth2Urls = this.urlBuilder.buildCognitoUrls(this.cognitoConfig, codeChallenge);
+    const oAuth2Urls = this.urlBuilder.buildCognitoUrls(this.cognitoConfig, this.codeChallengePair.getValue());
     this.httpClient.get(oAuth2Urls.logoutUrl, {});
     this.clearOurTokens();
   }
@@ -97,8 +98,7 @@ export class AuthService {
   }
 
   public async exchangeCodeForTokens(code, codeVerifier) {
-    const codeChallenge = await this.pkceService.getChallengePair();
-    const oAuth2Urls = this.urlBuilder.buildCognitoUrls(this.cognitoConfig, codeChallenge);
+    const oAuth2Urls = this.urlBuilder.buildCognitoUrls(this.cognitoConfig, this.codeChallengePair.getValue());
 
     let headers = new HttpHeaders({
       'Content-Type': 'application/x-www-form-urlencoded'
@@ -121,8 +121,7 @@ export class AuthService {
   }
 
   public async navigateToAuthUrl() {
-    const codeChallenge = await this.pkceService.getChallengePair();
-    const oAuth2Urls = this.urlBuilder.buildCognitoUrls(this.cognitoConfig, codeChallenge);
+    const oAuth2Urls = this.urlBuilder.buildCognitoUrls(this.cognitoConfig, this.codeChallengePair.getValue());
     window.open(oAuth2Urls.authorizeUrl, '_self');
   }
 
@@ -152,8 +151,7 @@ export class AuthService {
   }
 
   private async exchangeRefreshTokenForTokens(refreshToken) {
-    const codeChallenge = await this.pkceService.getChallengePair();
-    const oAuth2Urls = this.urlBuilder.buildCognitoUrls(this.cognitoConfig, codeChallenge);
+    const oAuth2Urls = this.urlBuilder.buildCognitoUrls(this.cognitoConfig, this.codeChallengePair.getValue());
 
     let headers = new HttpHeaders({
       'Content-Type': 'application/x-www-form-urlencoded'

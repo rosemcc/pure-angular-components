@@ -16,28 +16,7 @@ export class LoginService {
         private storageService: StorageService)
     {
     }
-
-    // public async appLogin() {
-    //     this.storageService.setItem('codeVerifier', this.authService.codeChallenge.codeVerifier);
-
-    //     this.inAppBrowserRef = cordova.InAppBrowser.open(authService.oAuth2Urls.authorizeUrl, '_blank', this._mobileParams);
-
-    //     this.inAppBrowserRef.addEventListener("loadstop", async (event: any) => {
-    //       if (event && event.url && (event.url).indexOf('?code=') !== -1) {
-    //         let code = event.url.slice(event.url.indexOf('?code=') + '?code='.length);
-
-    //         let codeVerifier = localStorage.getItem('codeVerifier');
-    //         await this.exchangeCodeForToken(code, codeVerifier);
-
-    //         // here is your token, now you can close the InAppBrowser and return to the previous location
-    //         this.inAppBrowserRef.close();
-    //         console.log("closing inappbrowser");
-
-    //         this.location.back();
-    //       }
-    //     });
-    // }
-
+    
     public async isAuthenticated() {
         return this.authService.isAuthenticated();
     }
