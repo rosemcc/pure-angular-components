@@ -18,34 +18,35 @@ export class PkceService {
   constructor(
     private storageService: StorageService
   ) {
+    this.loadOrGeneratePair();
   }
 
   public getChallengePair(): BehaviorSubject<ChallengePair> {
-
     const existingChallenge = this.challengePair$.getValue();
     if (existingChallenge === null) {
-
-      this.challengeFromStorage().then(challenge => {
-        if (challenge) {
-          this.challengePair$.next(challenge);
-        } else {
-          const codeVerifier = this.stripSymbols(lib.WordArray.random(32).toString(enc.Base64));
-          const codeChallenge = this.stripSymbols(SHA256(codeVerifier).toString(enc.Base64));
-          
-          this.storageService.setItem('code', codeChallenge);
-          this.storageService.setItem('codeVerifier', codeVerifier);
-          this.challengePair$.next({ codeChallenge, codeVerifier });
-        }
-      });
-
+      this.loadOrGeneratePair();
     }
-
     return this.challengePair$;
   }
 
   public clearChallengeFromStorage() {
     this.storageService.removeItem('code');
     this.storageService.removeItem('codeVerifier');
+  }
+
+  private loadOrGeneratePair() {
+    this.challengeFromStorage().then(challenge => {
+      if (challenge) {
+        this.challengePair$.next(challenge);
+      } else {
+        const codeVerifier = this.stripSymbols(lib.WordArray.random(32).toString(enc.Base64));
+        const codeChallenge = this.stripSymbols(SHA256(codeVerifier).toString(enc.Base64));
+        
+        this.storageService.setItem('code', codeChallenge);
+        this.storageService.setItem('codeVerifier', codeVerifier);
+        this.challengePair$.next({ codeChallenge, codeVerifier });
+      }
+    });
   }
 
   private async challengeFromStorage() {

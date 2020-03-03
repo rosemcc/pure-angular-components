@@ -16,12 +16,6 @@ export class AuthInterceptor implements HttpInterceptor {
 
   public intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
 
-    // store current url as the last visited URL (for login redirection target)
-    const code = new URL(window.location.href).searchParams.get('code');
-    if (!code) {
-      this.storageService.setItem('targetUrl', this.route.url);
-    }
-
     if (this.checkTokenType(req, this.cognitoConfig.bearerTokenUrlFilter)) {
       return from(this.handleAccessToken(req, next));
     } else if (this.checkTokenType(req, this.cognitoConfig.idTokenUrlFilter)) {

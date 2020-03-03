@@ -1,17 +1,18 @@
-import { Injectable } from '@angular/core';
+import { Injectable, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { OAuth2Urls } from '../interfaces';
 import { StorageService, CognitoConfig, PkceService, ChallengePair, UrlBuilder } from '.';
-import { Observable, BehaviorSubject } from 'rxjs';
+import { Observable, BehaviorSubject, Subscription } from 'rxjs';
 import { tap } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
 })
-export class AuthService {
-
-  private codeChallengePair: BehaviorSubject<ChallengePair>;
+export class AuthService implements OnDestroy {
+  private challengePair$: BehaviorSubject<ChallengePair> = new BehaviorSubject(null);
+  private oAuth2Urls$: BehaviorSubject<OAuth2Urls> = new BehaviorSubject(null);
+  private oAuth2UrlSubscription$: Subscription = new Subscription();
 
   constructor(
     private httpClient: HttpClient,
@@ -21,7 +22,21 @@ export class AuthService {
     private cognitoConfig: CognitoConfig,
     private storageService: StorageService
   ) {
-    this.codeChallengePair = this.pkceService.getChallengePair();
+    this.challengePair$ = this.pkceService.getChallengePair();
+    this.challengePair$.subscribe(pair => this.oAuth2Urls$.next(
+      this.urlBuilder.buildCognitoUrls(this.cognitoConfig, pair)
+    ));
+
+    // store current url as the last visited URL (for login redirection target)
+    const code = new URL(window.location.href).searchParams.get('code');
+    if (!code) {
+      this.storageService.setItem('targetUrl', this.router.url);
+    }
+  }
+
+  ngOnDestroy() {
+    this.challengePair$.unsubscribe();
+    this.oAuth2UrlSubscription$.unsubscribe();
   }
 
   public async isAuthenticated() {
@@ -46,31 +61,28 @@ export class AuthService {
   }
 
   public async getAccessToken() {
-    
     if (await this.isAuthenticated()) {
       return await this.storageService.getItem('accessToken');
     } else {
       // check if we have a refreshToken
       let refreshToken = await this.storageService.getItem('refreshToken');
       if (refreshToken) {
-        this.getNewTokensWithRefreshToken(refreshToken);
+        await this.exchangeRefreshTokenForTokens(refreshToken);
         return this.storageService.getItem('accessToken');
       }
       else {
-        console.log(await this.storageService.getItem('targetUrl'));
         this.router.navigate([await this.storageService.getItem('targetUrl')]);
       }
     }
   }
 
   public async getIdToken() {
-    console.log("getIdToken")
     if (await this.isAuthenticated()) {
       return this.storageService.getItem('idToken');
     } else {
       let refreshToken = JSON.parse(await this.storageService.getItem('refreshToken'));
       if (refreshToken) {
-        this.getNewTokensWithRefreshToken(refreshToken);
+        await this.exchangeRefreshTokenForTokens(refreshToken);
         return await this.storageService.getItem('idToken');
       } else {
         this.router.navigate([await this.storageService.getItem('targetUrl')]);
@@ -78,10 +90,14 @@ export class AuthService {
     }
   }
 
-  public async logout() {
-    const oAuth2Urls = this.urlBuilder.buildCognitoUrls(this.cognitoConfig, this.codeChallengePair.getValue());
-    this.httpClient.get(oAuth2Urls.logoutUrl, {});
-    this.clearOurTokens();
+  public logout() {
+    this.oAuth2UrlSubscription$.add(this.oAuth2Urls$.subscribe(urls => {
+      if (urls) {
+        this.httpClient.get(urls.logoutUrl, {});
+        this.clearOurTokens();
+        this.oAuth2UrlSubscription$.unsubscribe();
+      }
+    }));
   }
 
   public async getUserInfos() {
@@ -97,31 +113,48 @@ export class AuthService {
     return userInfos;
   }
 
-  public async exchangeCodeForTokens(code, codeVerifier) {
-    const oAuth2Urls = this.urlBuilder.buildCognitoUrls(this.cognitoConfig, this.codeChallengePair.getValue());
-
-    let headers = new HttpHeaders({
-      'Content-Type': 'application/x-www-form-urlencoded'
-    });
-
-    const body = new HttpParams()
-      .set('client_id', this.cognitoConfig.cognitoClientId)
-      .set('redirect_uri', oAuth2Urls.redirectUrl)
-      .set('code', code)
-      .set('code_verifier', codeVerifier)
-      .set('grant_type', 'authorization_code');
-
-    return this.httpClient.post(oAuth2Urls.tokenEndpoint, body.toString(), { headers }).pipe(tap(res => {
-      this.pkceService.clearChallengeFromStorage();
-      this.storeTokens(res);
+  public exchangeCodeForTokens(code) {
+    this.oAuth2UrlSubscription$.add(this.oAuth2Urls$.subscribe(urls => {
+      if (urls) {
+        let headers = new HttpHeaders({
+          'Content-Type': 'application/x-www-form-urlencoded'
+        });
+    
+        const body = new HttpParams()
+          .set('client_id', this.cognitoConfig.cognitoClientId)
+          .set('redirect_uri', urls.redirectUrl)
+          .set('code', code)
+          .set('code_verifier', this.challengePair$.getValue().codeVerifier)
+          .set('grant_type', 'authorization_code');
+    
+        this.httpClient.post(urls.tokenEndpoint, body.toString(), { headers }).subscribe(res => {
+          this.pkceService.clearChallengeFromStorage();
+          this.storeTokens(res);
+          this.oAuth2UrlSubscription$.unsubscribe();
+          this.returnToTargetRoute();
+        }, error => {
+          this.pkceService.clearChallengeFromStorage();
+          this.oAuth2UrlSubscription$.unsubscribe();
+          this.returnToTargetRoute();
+        });
+      }
     }));
   }
 
-  public async navigateToAuthUrl() {
-    const oAuth2Urls = this.urlBuilder.buildCognitoUrls(this.cognitoConfig, this.codeChallengePair.getValue());
-    window.open(oAuth2Urls.authorizeUrl, '_self');
+  public navigateToAuthUrl() {
+    this.oAuth2UrlSubscription$.add(this.oAuth2Urls$.subscribe(urls => {
+      if (urls) {
+        this.oAuth2UrlSubscription$.unsubscribe();
+        window.open(urls.authorizeUrl, '_self');
+      }
+    }));
   }
 
+  public returnToTargetRoute() {
+    const targetRoute = this.storageService.getItem('targetUrl').then(res => {
+      this.router.navigate([targetRoute]);
+    });
+  }
   ////////////// ######## PRIVATE ######## \\\\\\\\\\\\\\\
 
   private clearOurTokens() {
@@ -139,26 +172,30 @@ export class AuthService {
     return JSON.parse(window.atob(base64));
   }
 
-  private async getNewTokensWithRefreshToken(refreshToken) {
-    (await this.exchangeRefreshTokenForTokens(refreshToken)).subscribe(
-        res => this.storeTokens(res),
-        err => console.log(err)
-      );
-  }
-
-  private async exchangeRefreshTokenForTokens(refreshToken) {
-    const oAuth2Urls = this.urlBuilder.buildCognitoUrls(this.cognitoConfig, this.codeChallengePair.getValue());
-
-    let headers = new HttpHeaders({
-      'Content-Type': 'application/x-www-form-urlencoded'
+  private exchangeRefreshTokenForTokens(refreshToken) {
+    return new Promise((resolve, reject) => {
+      this.oAuth2UrlSubscription$.add(this.oAuth2Urls$.subscribe(urls => {
+        if (urls) {
+          let headers = new HttpHeaders({
+            'Content-Type': 'application/x-www-form-urlencoded'
+          });
+    
+          const body = new HttpParams()
+            .set('refresh_token', refreshToken)
+            .set('client_id', this.cognitoConfig.cognitoClientId)
+            .set('grant_type', 'refresh_token');
+    
+          this.httpClient.post(urls.tokenEndpoint, body.toString(), { headers }).subscribe(res => {
+            res => this.storeTokens(res);
+            this.oAuth2UrlSubscription$.unsubscribe();
+            resolve();
+          }, error => {
+            reject(error);
+          });
+        }
+      }));
     });
-
-    const body = new HttpParams()
-      .set('refresh_token', refreshToken)
-      .set('client_id', this.cognitoConfig.cognitoClientId)
-      .set('grant_type', 'refresh_token');
-
-    return this.httpClient.post(oAuth2Urls.tokenEndpoint, body.toString(), { headers });
+    
   }
 
 }
