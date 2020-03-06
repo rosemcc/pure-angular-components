@@ -4,7 +4,7 @@ import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { OAuth2Urls } from '../interfaces';
 import { StorageService, CognitoConfig, PkceService, ChallengePair, UrlBuilder } from '.';
 import { Observable, BehaviorSubject, Subscription } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { tap, finalize } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -23,9 +23,7 @@ export class AuthService implements OnDestroy {
     private storageService: StorageService
   ) {
     this.challengePair$ = this.pkceService.getChallengePair();
-    this.challengePair$.subscribe(pair => this.oAuth2Urls$.next(
-      this.urlBuilder.buildCognitoUrls(this.cognitoConfig, pair)
-    ));
+    this.challengePair$.subscribe(pair => this.oAuth2Urls$.next(this.urlBuilder.buildCognitoUrls(this.cognitoConfig, pair)));
 
     // store current url as the last visited URL (for login redirection target)
     const code = new URL(window.location.href).searchParams.get('code');
@@ -69,8 +67,7 @@ export class AuthService implements OnDestroy {
       if (refreshToken) {
         await this.exchangeRefreshTokenForTokens(refreshToken);
         return this.storageService.getItem('accessToken');
-      }
-      else {
+      } else {
         this.router.navigate([await this.storageService.getItem('targetUrl')]);
       }
     }
@@ -91,13 +88,15 @@ export class AuthService implements OnDestroy {
   }
 
   public logout() {
-    this.oAuth2UrlSubscription$.add(this.oAuth2Urls$.subscribe(urls => {
-      if (urls) {
-        this.httpClient.get(urls.logoutUrl, {});
-        this.clearOurTokens();
-        this.oAuth2UrlSubscription$.unsubscribe();
-      }
-    }));
+    this.oAuth2UrlSubscription$.add(
+      this.oAuth2Urls$.subscribe(urls => {
+        if (urls) {
+          this.httpClient.get(urls.logoutUrl, {});
+          this.clearOurTokens();
+          this.oAuth2UrlSubscription$.unsubscribe();
+        }
+      })
+    );
   }
 
   public async getUserInfos() {
@@ -114,46 +113,52 @@ export class AuthService implements OnDestroy {
   }
 
   public exchangeCodeForTokens(code) {
-    this.oAuth2UrlSubscription$.add(this.oAuth2Urls$.subscribe(urls => {
-      if (urls) {
-        let headers = new HttpHeaders({
-          'Content-Type': 'application/x-www-form-urlencoded'
-        });
-    
-        const body = new HttpParams()
-          .set('client_id', this.cognitoConfig.cognitoClientId)
-          .set('redirect_uri', urls.redirectUrl)
-          .set('code', code)
-          .set('code_verifier', this.challengePair$.getValue().codeVerifier)
-          .set('grant_type', 'authorization_code');
-    
-        this.httpClient.post(urls.tokenEndpoint, body.toString(), { headers }).subscribe(res => {
-          this.pkceService.clearChallengeFromStorage();
-          this.storeTokens(res);
-          this.oAuth2UrlSubscription$.unsubscribe();
-          this.returnToTargetRoute();
-        }, error => {
-          this.pkceService.clearChallengeFromStorage();
-          this.oAuth2UrlSubscription$.unsubscribe();
-          this.returnToTargetRoute();
-        });
-      }
-    }));
+    this.oAuth2UrlSubscription$.add(
+      this.oAuth2Urls$.subscribe(urls => {
+        if (urls) {
+          let headers = new HttpHeaders({
+            'Content-Type': 'application/x-www-form-urlencoded'
+          });
+
+          const body = new HttpParams()
+            .set('client_id', this.cognitoConfig.cognitoClientId)
+            .set('redirect_uri', urls.redirectUrl)
+            .set('code', code)
+            .set('code_verifier', this.challengePair$.getValue().codeVerifier)
+            .set('grant_type', 'authorization_code');
+
+          this.httpClient
+            .post(urls.tokenEndpoint, body.toString(), { headers })
+            .pipe(finalize(() => this.returnToTargetRoute()))
+            .subscribe(
+              res => {
+                this.pkceService.clearChallengeFromStorage();
+                this.storeTokens(res);
+                this.oAuth2UrlSubscription$.unsubscribe();
+              },
+              error => {
+                this.pkceService.clearChallengeFromStorage();
+                this.oAuth2UrlSubscription$.unsubscribe();
+              }
+            );
+        }
+      })
+    );
   }
 
   public navigateToAuthUrl() {
-    this.oAuth2UrlSubscription$.add(this.oAuth2Urls$.subscribe(urls => {
-      if (urls) {
-        this.oAuth2UrlSubscription$.unsubscribe();
-        window.open(urls.authorizeUrl, '_self');
-      }
-    }));
+    this.oAuth2UrlSubscription$.add(
+      this.oAuth2Urls$.subscribe(urls => {
+        if (urls) {
+          this.oAuth2UrlSubscription$.unsubscribe();
+          window.open(urls.authorizeUrl, '_self');
+        }
+      })
+    );
   }
 
   public returnToTargetRoute() {
-    const targetRoute = this.storageService.getItem('targetUrl').then(res => {
-      this.router.navigate([targetRoute]);
-    });
+    this.storageService.getItem('targetUrl').then(res => this.router.navigate([res]));
   }
   ////////////// ######## PRIVATE ######## \\\\\\\\\\\\\\\
 
@@ -174,28 +179,31 @@ export class AuthService implements OnDestroy {
 
   private exchangeRefreshTokenForTokens(refreshToken) {
     return new Promise((resolve, reject) => {
-      this.oAuth2UrlSubscription$.add(this.oAuth2Urls$.subscribe(urls => {
-        if (urls) {
-          let headers = new HttpHeaders({
-            'Content-Type': 'application/x-www-form-urlencoded'
-          });
-    
-          const body = new HttpParams()
-            .set('refresh_token', refreshToken)
-            .set('client_id', this.cognitoConfig.cognitoClientId)
-            .set('grant_type', 'refresh_token');
-    
-          this.httpClient.post(urls.tokenEndpoint, body.toString(), { headers }).subscribe(res => {
-            res => this.storeTokens(res);
-            this.oAuth2UrlSubscription$.unsubscribe();
-            resolve();
-          }, error => {
-            reject(error);
-          });
-        }
-      }));
-    });
-    
-  }
+      this.oAuth2UrlSubscription$.add(
+        this.oAuth2Urls$.subscribe(urls => {
+          if (urls) {
+            const headers = new HttpHeaders({
+              'Content-Type': 'application/x-www-form-urlencoded'
+            });
 
+            const body = new HttpParams()
+              .set('refresh_token', refreshToken)
+              .set('client_id', this.cognitoConfig.cognitoClientId)
+              .set('grant_type', 'refresh_token');
+
+            this.httpClient.post(urls.tokenEndpoint, body.toString(), { headers }).subscribe(
+              res => {
+                res => this.storeTokens(res);
+                this.oAuth2UrlSubscription$.unsubscribe();
+                resolve();
+              },
+              error => {
+                reject(error);
+              }
+            );
+          }
+        })
+      );
+    });
+  }
 }

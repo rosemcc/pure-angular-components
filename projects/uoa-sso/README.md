@@ -16,7 +16,7 @@ You will need to create this AppAuthConfig class, which assigns each property fr
 
 ```
 import { CognitoConfig } from '../../../uoa-common/projects/uoa-sso/src/public-api';
-import { environment } from '../environments/environment';
+import { environment } from 'src/environments/environment';
 import { Injectable } from '@angular/core';
 
 @Injectable({
@@ -41,18 +41,33 @@ export class AppAuthConfig extends CognitoConfig {
 Now from your app component you can hook in to the redirects of the library:
 
 ```
-ngOnInit() {
-    this.platform.ready().then(() => {
-        const inboundAuthCode = new URL(window.location.href).searchParams.get('code');
-        this.loginService.doWebLogin(inboundAuthCode);
-    })
-}
+async ngOnInit() {
+    this.platform.ready().then(async () => {
+      await this.loginService.loginSuccess();
+    });
+  }
 ```
+
+Create a authGuard and hook authentication and login methods from Login Service of library:
+
+```
+async canActivate(route: ActivatedRouteSnapshot) {
+    if (!(await this.loginService.isAuthenticated())) {
+      this.loginService.doLogin(`/${route.url}`);
+      return false;
+    }
+
+    return true;
+  }
+```
+
+Add guard to your routes.
 
 ## Code scaffolding
 
 Run `ng generate component component-name --project uoa-sso` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module --project uoa-sso`.
-> Note: Don't forget to add `--project uoa-sso` or else it will be added to the default project in your `angular.json` file. 
+
+> Note: Don't forget to add `--project uoa-sso` or else it will be added to the default project in your `angular.json` file.
 
 ## Build
 

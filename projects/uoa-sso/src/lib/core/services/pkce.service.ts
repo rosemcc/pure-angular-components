@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { lib, SHA256, enc } from "crypto-js";
-import { StorageService } from '.';
+import { lib, SHA256, enc } from 'crypto-js';
+import { StorageService } from './storage.service';
 import { BehaviorSubject } from 'rxjs';
 
 export interface ChallengePair {
@@ -12,12 +12,9 @@ export interface ChallengePair {
   providedIn: 'root'
 })
 export class PkceService {
-
   private challengePair$: BehaviorSubject<ChallengePair> = new BehaviorSubject(null);
-  
-  constructor(
-    private storageService: StorageService
-  ) {
+
+  constructor(private storageService: StorageService) {
     this.loadOrGeneratePair();
   }
 
@@ -50,9 +47,9 @@ export class PkceService {
   }
 
   private async challengeFromStorage() {
-    let codeChallenge = await this.storageService.getItem('code');
+    const codeChallenge = await this.storageService.getItem('code');
     if (!codeChallenge) return null;
-    let codeVerifier = await this.storageService.getItem('codeVerifier');
+    const codeVerifier = await this.storageService.getItem('codeVerifier');
     if (!codeVerifier) return null;
     return { codeChallenge, codeVerifier };
   }
@@ -63,5 +60,4 @@ export class PkceService {
       .replace(/\//g, '_')
       .replace(/=/g, '');
   }
-
 }

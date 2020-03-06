@@ -2,26 +2,17 @@ import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent } from '@angular/c
 import { Injectable } from '@angular/core';
 import { Observable, from } from 'rxjs';
 
-import { AuthService, CognitoConfig, StorageService } from '../services';
-import { Router } from '@angular/router';
+import { CognitoConfig } from '../services';
+import { AuthService } from '../services/auth.service';
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
-  constructor(
-    private authService: AuthService,
-    private cognitoConfig: CognitoConfig,
-    private storageService: StorageService,
-    private route: Router
-  ) {}
+  constructor(private authService: AuthService, private cognitoConfig: CognitoConfig) {}
 
   public intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-
     if (this.checkTokenType(req, this.cognitoConfig.bearerTokenUrlFilter)) {
       return from(this.handleAccessToken(req, next));
-    } else if (this.checkTokenType(req, this.cognitoConfig.idTokenUrlFilter)) {
-      return from(this.handleIdToken(req, next));
     }
-
     return next.handle(req);
   }
 
@@ -31,15 +22,9 @@ export class AuthInterceptor implements HttpInterceptor {
     return next.handle(newReq).toPromise();
   }
 
-  private async handleIdToken(req: HttpRequest<any>, next: HttpHandler) {
-    const token = await this.authService.getIdToken();
-    const newReq = this.appendAuthHeader(req, token);
-    return next.handle(newReq).toPromise();
-  }
-
   private appendAuthHeader(req: HttpRequest<any>, formattedToken: string) {
-    let newHeaders = req.headers.append('Authorization', formattedToken);
-    return req.clone({ headers: newHeaders });
+    const headers = req.headers.append('Authorization', formattedToken);
+    return req.clone({ headers });
   }
 
   private checkTokenType(req: HttpRequest<any>, tokenFilters: string[]): boolean {

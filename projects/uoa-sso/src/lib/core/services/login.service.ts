@@ -1,34 +1,52 @@
 import { Injectable } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
+import { filter, tap } from 'rxjs/operators';
+
+import { StorageService } from './storage.service';
 import { AuthService } from './auth.service';
 
 @Injectable({
-    providedIn: 'root'
+  providedIn: 'root'
 })
 export class LoginService {
+  constructor(private authService: AuthService, private route: ActivatedRoute, private storageService: StorageService) {}
 
-    constructor(
-        private authService: AuthService
-    ) {
+  public async isAuthenticated() {
+    return await this.authService.isAuthenticated();
+  }
+
+  public async alwaysAuthenticated(inboundAuthCode?: string, targetReturnUrl?: string) {
+    if (inboundAuthCode) {
+      // inbound navigation
+      await this.loginSuccess();
+    } else {
+      // outbound navigation
+      this.doLogin(targetReturnUrl);
     }
+  }
 
-    public async isAuthenticated() {
-        return this.authService.isAuthenticated();
-    }
+  public doLogin(targetReturnUrl?: string) {
+    this.storageService.setItem('targetUrl', targetReturnUrl);
+    this.authService.isAuthenticated().then(authenticated => {
+      if (!authenticated) {
+        this.authService.navigateToAuthUrl();
+      }
+    });
+  }
 
-    public doWebLogin(inboundAuthCode?: string) {
-        if (inboundAuthCode) {
+  public logout() {
+    this.authService.logout();
+  }
 
-            // inbound navigation
-            this.authService.exchangeCodeForTokens(inboundAuthCode);
-
-        } else {
-
-            // outbound navigation
-            this.authService.isAuthenticated().then(authenticated => {
-                if (!authenticated) {
-                    this.authService.navigateToAuthUrl();
-                }
-            });
-        }
-    }
+  public async loginSuccess() {
+    await this.route.queryParamMap
+      .pipe(
+        filter(params => !!params.get('code')),
+        tap(param => {
+          this.authService.exchangeCodeForTokens(param.get('code'));
+          console.log('code exchange happened successfully');
+        })
+      )
+      .toPromise();
+  }
 }
