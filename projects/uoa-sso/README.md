@@ -51,14 +51,20 @@ async ngOnInit() {
 Create a authGuard and hook authentication and login methods from Login Service of library:
 
 ```
-async canActivate(route: ActivatedRouteSnapshot) {
+export class AuthGuard implements CanActivate {
+
+  constructor(private loginService : LoginService) {
+  }
+
+  async canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot) {
     if (!(await this.loginService.isAuthenticated())) {
-      this.loginService.doLogin(`/${route.url}`);
+      this.loginService.doLogin(state.url);
       return false;
     }
-
     return true;
   }
+  
+}
 ```
 
 Add guard to your routes.
