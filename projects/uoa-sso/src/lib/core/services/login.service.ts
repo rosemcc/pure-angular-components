@@ -11,34 +11,20 @@ import { AuthService } from './auth.service';
 export class LoginService {
   constructor(private authService: AuthService, private route: ActivatedRoute, private storageService: StorageService) {}
 
-  public async isAuthenticated() {
+  public async isAuthenticated(): Promise<boolean> {
     return await this.authService.isAuthenticated();
   }
 
-  public async alwaysAuthenticated(inboundAuthCode?: string, targetReturnUrl?: string) {
-    if (inboundAuthCode) {
-      // inbound navigation
-      await this.loginSuccess();
-    } else {
-      // outbound navigation
-      this.doLogin(targetReturnUrl);
-    }
-  }
-
-  public doLogin(targetReturnUrl?: string) {
+  public async doLogin(targetReturnUrl?: string): Promise<void> {
     this.storageService.setItem('targetUrl', targetReturnUrl);
-    this.authService.isAuthenticated().then(authenticated => {
+    await this.authService.isAuthenticated().then(authenticated => {
       if (!authenticated) {
         this.authService.navigateToAuthUrl();
       }
     });
   }
 
-  public logout() {
-    this.authService.logout();
-  }
-
-  public async loginSuccess() {
+  public async loginSuccess(): Promise<void> {
     await this.route.queryParamMap
       .pipe(
         filter(params => !!params.get('code')),
@@ -48,5 +34,9 @@ export class LoginService {
         })
       )
       .toPromise();
+  }
+
+  public logout(): void {
+    this.authService.logout();
   }
 }

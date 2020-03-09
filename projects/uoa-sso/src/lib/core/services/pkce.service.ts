@@ -12,33 +12,25 @@ export interface ChallengePair {
   providedIn: 'root'
 })
 export class PkceService {
-  private challengePair$: BehaviorSubject<ChallengePair> = new BehaviorSubject(null);
+  public challengePair$: BehaviorSubject<ChallengePair> = new BehaviorSubject(null);
 
   constructor(private storageService: StorageService) {
     this.loadOrGeneratePair();
   }
 
-  public getChallengePair(): BehaviorSubject<ChallengePair> {
-    const existingChallenge = this.challengePair$.getValue();
-    if (existingChallenge === null) {
-      this.loadOrGeneratePair();
-    }
-    return this.challengePair$;
-  }
-
-  public clearChallengeFromStorage() {
+  public clearChallengeFromStorage(): void {
     this.storageService.removeItem('code');
     this.storageService.removeItem('codeVerifier');
   }
 
-  private loadOrGeneratePair() {
+  private loadOrGeneratePair(): void {
     this.challengeFromStorage().then(challenge => {
       if (challenge) {
         this.challengePair$.next(challenge);
       } else {
         const codeVerifier = this.stripSymbols(lib.WordArray.random(32).toString(enc.Base64));
         const codeChallenge = this.stripSymbols(SHA256(codeVerifier).toString(enc.Base64));
-        
+
         this.storageService.setItem('code', codeChallenge);
         this.storageService.setItem('codeVerifier', codeVerifier);
         this.challengePair$.next({ codeChallenge, codeVerifier });
