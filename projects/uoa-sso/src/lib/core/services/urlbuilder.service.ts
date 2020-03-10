@@ -7,10 +7,6 @@ import { CognitoConfig, ChallengePair } from '.';
 })
 export class UrlBuilder {
   buildCognitoUrls(config: CognitoConfig, codeChallenge: ChallengePair): OAuth2Urls {
-    if (codeChallenge === null) {
-      return null;
-    }
-
     const authorizeEndpoint = `https://${config.cognitoDomain}.auth.${config.cognitoAwsRegion}.amazoncognito.com/oauth2/authorize`;
     return {
       discoveryEndpoint: `https://cognito-idp.${config.cognitoAwsRegion}.amazonaws.com/${config.cognitoUserPoolId}/.well-known/openid-configuration`,

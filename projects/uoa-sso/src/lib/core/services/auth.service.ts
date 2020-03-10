@@ -3,16 +3,15 @@ import { Router } from '@angular/router';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { OAuth2Urls } from '../interfaces';
 import { StorageService, CognitoConfig, PkceService, UrlBuilder } from '.';
-import { BehaviorSubject, Subscription } from 'rxjs';
-import { finalize } from 'rxjs/operators';
+import { ReplaySubject, Subscription } from 'rxjs';
+import { finalize, filter, switchMap, tap } from 'rxjs/operators';
 import { untilDestroyed } from 'ngx-take-until-destroy';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService implements OnDestroy {
-  private oAuth2Urls$: BehaviorSubject<OAuth2Urls> = new BehaviorSubject(null);
-  private oAuth2UrlSubscription$: Subscription = new Subscription();
+  private oAuth2Urls$: ReplaySubject<OAuth2Urls> = new ReplaySubject(1);
 
   constructor(
     private httpClient: HttpClient,
@@ -23,13 +22,12 @@ export class AuthService implements OnDestroy {
     private storageService: StorageService
   ) {
     this.pkceService.challengePair$
+    .pipe(filter(challengePair=>!!challengePair))
       .pipe(untilDestroyed(this))
       .subscribe(pair => this.oAuth2Urls$.next(this.urlBuilder.buildCognitoUrls(this.cognitoConfig, pair)));
   }
 
   ngOnDestroy() {
-    // untilDestroyed
-    this.oAuth2UrlSubscription$.unsubscribe();
   }
 
   public async isAuthenticated(): Promise<boolean> {
@@ -57,7 +55,7 @@ export class AuthService implements OnDestroy {
       let refreshToken = await this.storageService.getItem('refreshToken');
       if (refreshToken) {
         await this.exchangeRefreshTokenForTokens(refreshToken);
-        return this.storageService.getItem('accessToken');
+        return await this.storageService.getItem('accessToken');
       } else {
         this.router.navigate([await this.storageService.getItem('targetUrl')]);
       }
@@ -65,15 +63,10 @@ export class AuthService implements OnDestroy {
   }
 
   public logout() {
-    this.oAuth2UrlSubscription$.add(
-      this.oAuth2Urls$.subscribe(urls => {
-        if (urls) {
-          this.httpClient.get(urls.logoutUrl, {});
-          this.clearOurTokens();
-          this.oAuth2UrlSubscription$.unsubscribe();
-        }
-      })
-    );
+    this.oAuth2Urls$.subscribe(urls => {
+      this.httpClient.get(urls.logoutUrl, {});
+      this.clearOurTokens();
+    });
   }
 
   public async getUserInfos() {
@@ -90,44 +83,36 @@ export class AuthService implements OnDestroy {
   }
 
   public exchangeCodeForTokens(code) {
-    this.oAuth2UrlSubscription$.add(
-      this.oAuth2Urls$.subscribe(urls => {
-        if (urls) {
-          const headers = new HttpHeaders({
-            'Content-Type': 'application/x-www-form-urlencoded'
-          });
+    
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/x-www-form-urlencoded'
+    });
 
-          const body = new HttpParams()
-            .set('client_id', this.cognitoConfig.cognitoClientId)
-            .set('redirect_uri', urls.redirectUrl)
-            .set('code', code)
-            .set('code_verifier', this.pkceService.challengePair$.getValue().codeVerifier)
-            .set('grant_type', 'authorization_code');
+    this.oAuth2Urls$.pipe(untilDestroyed(this)).subscribe(urls => {
 
-          this.httpClient
-            .post(urls.tokenEndpoint, body.toString(), { headers })
-            .pipe(
-              finalize(() => {
-                this.pkceService.clearChallengeFromStorage();
-                this.oAuth2UrlSubscription$.unsubscribe();
-                this.returnToTargetRoute();
-              })
-            )
-            .subscribe(res => this.storeTokens(res));
-        }
-      })
-    );
+      const body = new HttpParams()
+        .set('client_id', this.cognitoConfig.cognitoClientId)
+        .set('redirect_uri', urls.redirectUrl)
+        .set('code', code)
+        .set('code_verifier', this.pkceService.challengePair$.getValue().codeVerifier)
+        .set('grant_type', 'authorization_code');
+
+      this.httpClient
+        .post(urls.tokenEndpoint, body.toString(), { headers })
+        .pipe(
+          finalize(() => {
+            this.pkceService.clearChallengeFromStorage();
+            this.returnToTargetRoute();
+          })
+        )
+        .subscribe(res => this.storeTokens(res));
+    });
   }
 
   public navigateToAuthUrl() {
-    this.oAuth2UrlSubscription$.add(
-      this.oAuth2Urls$.subscribe(urls => {
-        if (urls) {
-          this.oAuth2UrlSubscription$.unsubscribe();
-          window.open(urls.authorizeUrl, '_self');
-        }
-      })
-    );
+    this.oAuth2Urls$.pipe(untilDestroyed(this)).subscribe(urls => {
+      window.open(urls.authorizeUrl, '_self');
+    });
   }
 
   public returnToTargetRoute() {
@@ -151,31 +136,21 @@ export class AuthService implements OnDestroy {
   }
 
   private exchangeRefreshTokenForTokens(refreshToken) {
-    return new Promise((resolve, reject) => {
-      this.oAuth2UrlSubscription$.add(
-        this.oAuth2Urls$.subscribe(urls => {
-          if (urls) {
-            const headers = new HttpHeaders({
-              'Content-Type': 'application/x-www-form-urlencoded'
-            });
+  
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/x-www-form-urlencoded'
+    });
 
-            const body = new HttpParams()
-              .set('refresh_token', refreshToken)
-              .set('client_id', this.cognitoConfig.cognitoClientId)
-              .set('grant_type', 'refresh_token');
+    const body = new HttpParams()
+      .set('refresh_token', refreshToken)
+      .set('client_id', this.cognitoConfig.cognitoClientId)
+      .set('grant_type', 'refresh_token');
 
-            this.httpClient.post(urls.tokenEndpoint, body.toString(), { headers }).subscribe(
-              res => {
-                this.storeTokens(res);
-                this.oAuth2UrlSubscription$.unsubscribe();
-                resolve();
-              },
-              error => {
-                reject(error);
-              }
-            );
-          }
-        })
+    this.oAuth2Urls$.pipe(untilDestroyed(this)).subscribe(urls => {
+      this.httpClient.post(urls.tokenEndpoint, body.toString(), { headers }).subscribe(
+        res => {
+          this.storeTokens(res);
+        }
       );
     });
   }
