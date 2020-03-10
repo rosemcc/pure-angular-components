@@ -9,8 +9,9 @@ import { SlideUpDownAnimation } from '../../theme/animations';
   <div class="panel panel-info" [ngClass]="{'open': opened==true}">
     <div class="panel-heading" (click)="toggle.emit()">
       {{title}}
+      <ion-button size="small" class="ion-float-right" (click)="togglePinned">PIN</ion-button>
     </div>
-    <div class="panel-heading-chevron"></div>
+    <div class="panel-heading-chevron" (click)="toggle.emit()"></div>
     <div class="panel-body" [@slideUpDown]="opened">
       <ng-content></ng-content>
     </div>
@@ -23,4 +24,11 @@ export class UoaExpandablePanelComponent implements Expandable {
   @Input() opened = false;
   @Input() title: string;
   @Output() toggle: EventEmitter<any> = new EventEmitter<any>();
+  @Output() pinned: EventEmitter<boolean> = new EventEmitter<boolean>();
+
+  public isPinned: boolean = false;
+
+  togglePinned() {
+    this.pinned.emit(this.isPinned);
+  }
 }

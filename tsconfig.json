@@ -11,28 +11,12 @@
     "moduleResolution": "node",
     "importHelpers": true,
     "target": "es2015",
-    "typeRoots": [
-      "node_modules/@types"
-    ],
-    "lib": [
-      "es2018",
-      "dom"
-    ],
+    "typeRoots": ["node_modules/@types"],
+    "lib": ["es2018", "dom"],
     "paths": {
-      "uoa-controls": [
-        "dist/uoa-controls"
-      ],
-      "uoa-controls/*": [
-        "dist/uoa-controls/*"
-      ],
-      "uoa-sso": [
-        "dist/uoa-sso/uoa-sso",
-        "dist/uoa-sso"
-      ],
-      "uoa-error-pages": [
-        "dist/uoa-error-pages/uoa-error-pages",
-        "dist/uoa-error-pages"
-      ]
+      "uoa-controls": ["dist/uoa-controls"],
+      "uoa-controls/*": ["dist/uoa-controls/*"],
+      "uoa-sso": ["dist/uoa-sso/uoa-sso", "dist/uoa-sso"]
     }
   },
   "angularCompilerOptions": {
