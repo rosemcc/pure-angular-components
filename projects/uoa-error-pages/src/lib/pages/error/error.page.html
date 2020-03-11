@@ -1,10 +1,10 @@
 <ion-content>
   <div class="content-wrapper">
+    <app-header></app-header>
     <div class="inner-content">
-      <header></header>
       <div class="header-padding-no-progress-bar margin-h-10vw enlarged-font">
         <div class="position-relative">
-          <div *ngIf="errorCode=== 'ErrorCode400' || errorCode=== 'ErrorCode409'">
+          <div *ngIf="errorCode=== 'ErrorCode400' || errorCode=== 'ErrorCode401'">
             <h1 class="error-h1 margin-top-xl bold">Bad Request</h1>
             <p class="margin-top-l">The system is currently unavailable, we apologise for any inconvenience</p>
             <p class="margin-top-m">Please try again later.</p>
@@ -60,16 +60,9 @@
               <!--There was a problem accessing this application. If the problem persists, please contact us.-->
             </p>
           </div>
-          <div class="flex-center margin-top-xxl">
-            <div class="full-width max-width-250">
-              <ion-button color="primary" shape="round" expand="full" (click)="pageReinitialize()">
-                Go to home page
-              </ion-button>
-            </div>
-          </div>
         </div>
       </div>
-      <footer></footer>
     </div>
+    <app-footer></app-footer>
   </div>
 </ion-content>

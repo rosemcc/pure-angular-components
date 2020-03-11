@@ -22,13 +22,12 @@ export class AuthService implements OnDestroy {
     private storageService: StorageService
   ) {
     this.pkceService.challengePair$
-    .pipe(filter(challengePair=>!!challengePair))
+      .pipe(filter(challengePair => !!challengePair))
       .pipe(untilDestroyed(this))
       .subscribe(pair => this.oAuth2Urls$.next(this.urlBuilder.buildCognitoUrls(this.cognitoConfig, pair)));
   }
 
-  ngOnDestroy() {
-  }
+  ngOnDestroy() {}
 
   public async hasTokenExpired(): Promise<boolean> {
     const expiresAt = await this.storageService.getItem('expiresAt');
@@ -51,9 +50,10 @@ export class AuthService implements OnDestroy {
   public async obtainValidAccessToken() {
     if (await this.hasTokenExpired()) {
       // check if we have a refreshToken
-      let refreshToken = await this.storageService.getItem('refreshToken');
+      const refreshToken = await this.storageService.getItem('refreshToken');
       if (refreshToken) {
-        await this.exchangeRefreshTokenForTokens(refreshToken);
+        const refresh = await this.exchangeRefreshTokenForTokens(refreshToken);
+        console.log('refresh', refresh);
         return await this.storageService.getItem('accessToken');
       } else {
         // invalid token and no refresh token = start over
@@ -91,13 +91,11 @@ export class AuthService implements OnDestroy {
   }
 
   public exchangeCodeForTokens(code) {
-    
     const headers = new HttpHeaders({
       'Content-Type': 'application/x-www-form-urlencoded'
     });
 
     this.oAuth2Urls$.pipe(untilDestroyed(this)).subscribe(urls => {
-
       const body = new HttpParams()
         .set('client_id', this.cognitoConfig.cognitoClientId)
         .set('redirect_uri', urls.redirectUrl)
@@ -144,7 +142,6 @@ export class AuthService implements OnDestroy {
   }
 
   private exchangeRefreshTokenForTokens(refreshToken) {
-  
     const headers = new HttpHeaders({
       'Content-Type': 'application/x-www-form-urlencoded'
     });
@@ -155,12 +152,10 @@ export class AuthService implements OnDestroy {
       .set('grant_type', 'refresh_token');
 
     this.oAuth2Urls$.pipe(untilDestroyed(this)).subscribe(urls => {
-      this.httpClient.post(urls.tokenEndpoint, body.toString(), { headers }).subscribe(
-        res => {
-          const allTokens = {...res, refresh_token: refreshToken};
-          this.storeTokens(allTokens);
-        }
-      );
+      this.httpClient.post(urls.tokenEndpoint, body.toString(), { headers }).subscribe(res => {
+        const allTokens = { ...res, refresh_token: refreshToken };
+        this.storeTokens(allTokens);
+      });
     });
   }
 }

@@ -4,7 +4,6 @@ import { HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/c
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 
-// TODO I don't like this interceptor :D 403 makes sense, but 400 not really
 @Injectable({
   providedIn: 'root'
 })
@@ -18,10 +17,9 @@ export class ClientErrorInterceptor implements HttpInterceptor {
       tap(
         res => {},
         error => {
-          if (this.ERROR_CODES.includes(error.status) && (!error.error || error.error.name !== 'pdf.invalid')) {
+          if (this.ERROR_CODES.includes(error.status)) {
             console.warn(`ClientErrorInterceptor - HTTP ${error.status}`);
-            //this._navService.gotoApplicationErrorPage(error.status);
-            return this.router.navigate(['/error', error.status]);
+            return this.router.navigate(['/app-error', error.status]);
           }
         }
       )

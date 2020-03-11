@@ -9,7 +9,12 @@ import { AuthService } from './auth.service';
   providedIn: 'root'
 })
 export class LoginService {
-  constructor(private authService: AuthService, private route: ActivatedRoute, private storageService: StorageService) {}
+  constructor(
+    private authService: AuthService,
+    private route: ActivatedRoute,
+    private storageService: StorageService,
+    private router: Router
+  ) {}
 
   public async isAuthenticated(): Promise<boolean> {
     return !(await this.authService.hasTokenExpired());
@@ -19,7 +24,7 @@ export class LoginService {
     this.storageService.setItem('targetUrl', targetReturnUrl);
     await this.authService.obtainValidAccessToken();
   }
-/*
+  /*
   public async loginSuccess(): Promise<void> {
     const inboundCode = this.route.snapshot.queryParams['code'];
     if (!!inboundCode) {
@@ -30,15 +35,17 @@ export class LoginService {
   }
 */
 
-
   public async loginSuccess(): Promise<void> {
     await this.route.queryParamMap
       .pipe(
-        skip(1),
-        filter(params => !!params && params.has('code')),
+        filter(params => !!params),
         tap(param => {
-          this.authService.exchangeCodeForTokens(param.get('code'));
-          console.log('code exchange happened successfully');
+          if (param.get('code')) {
+            this.authService.exchangeCodeForTokens(param.get('code'));
+            console.log('code exchange happened successfully');
+          } else if (param.get('error')) {
+            this.router.navigate(['app-error/403']);
+          }
         })
       )
       .toPromise();
