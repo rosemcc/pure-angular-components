@@ -30,11 +30,12 @@ export class AuthService implements OnDestroy {
   ngOnDestroy() {
   }
 
-  public async isAuthenticated(): Promise<boolean> {
+  public async hasTokenExpired(): Promise<boolean> {
     const expiresAt = await this.storageService.getItem('expiresAt');
+    if (!expiresAt) return true;
 
     // be careful expiresAt is in seconds and Date.now() in milliseconds
-    return expiresAt && Number(expiresAt) * 1000 > Date.now() - 10000;
+    return expiresAt && Number(expiresAt) * 1000 <= Date.now() - 10000;
   }
 
   public storeTokens(tokens): void {
@@ -47,17 +48,24 @@ export class AuthService implements OnDestroy {
     this.storageService.setItem('expiresAt', decodedToken.exp);
   }
 
-  public async getAccessToken() {
-    if (await this.isAuthenticated()) {
-      return await this.storageService.getItem('accessToken');
-    } else {
+  public async obtainValidAccessToken() {
+    if (await this.hasTokenExpired()) {
       // check if we have a refreshToken
       let refreshToken = await this.storageService.getItem('refreshToken');
       if (refreshToken) {
         await this.exchangeRefreshTokenForTokens(refreshToken);
         return await this.storageService.getItem('accessToken');
       } else {
-        this.router.navigate([await this.storageService.getItem('targetUrl')]);
+        // invalid token and no refresh token = start over
+        this.navigateToAuthUrl();
+      }
+    } else {
+      const token = await this.storageService.getItem('accessToken');
+      // some evil developer probably deleted the token from storage
+      if (!token) {
+        this.navigateToAuthUrl();
+      } else {
+        return token;
       }
     }
   }
@@ -149,7 +157,8 @@ export class AuthService implements OnDestroy {
     this.oAuth2Urls$.pipe(untilDestroyed(this)).subscribe(urls => {
       this.httpClient.post(urls.tokenEndpoint, body.toString(), { headers }).subscribe(
         res => {
-          this.storeTokens(res);
+          const allTokens = {...res, refresh_token: refreshToken};
+          this.storeTokens(allTokens);
         }
       );
     });

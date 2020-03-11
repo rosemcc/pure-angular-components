@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
-import { filter, tap } from 'rxjs/operators';
+import { ActivatedRoute, Router, NavigationEnd } from '@angular/router';
+import { filter, tap, skip } from 'rxjs/operators';
 
 import { StorageService } from './storage.service';
 import { AuthService } from './auth.service';
@@ -12,22 +12,30 @@ export class LoginService {
   constructor(private authService: AuthService, private route: ActivatedRoute, private storageService: StorageService) {}
 
   public async isAuthenticated(): Promise<boolean> {
-    return await this.authService.isAuthenticated();
+    return !(await this.authService.hasTokenExpired());
   }
 
   public async doLogin(targetReturnUrl?: string): Promise<void> {
     this.storageService.setItem('targetUrl', targetReturnUrl);
-    await this.authService.isAuthenticated().then(authenticated => {
-      if (!authenticated) {
-        this.authService.navigateToAuthUrl();
-      }
-    });
+    await this.authService.obtainValidAccessToken();
   }
+/*
+  public async loginSuccess(): Promise<void> {
+    const inboundCode = this.route.snapshot.queryParams['code'];
+    if (!!inboundCode) {
+        this.authService.exchangeCodeForTokens(inboundCode);
+    } else {
+        await this.authService.obtainValidAccessToken();
+    }
+  }
+*/
+
 
   public async loginSuccess(): Promise<void> {
     await this.route.queryParamMap
       .pipe(
-        filter(params => !!params.get('code')),
+        skip(1),
+        filter(params => !!params && params.has('code')),
         tap(param => {
           this.authService.exchangeCodeForTokens(param.get('code'));
           console.log('code exchange happened successfully');
