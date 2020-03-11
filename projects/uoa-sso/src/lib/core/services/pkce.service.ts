@@ -19,7 +19,6 @@ export class PkceService {
   }
 
   public clearChallengeFromStorage(): void {
-    this.storageService.removeItem('code');
     this.storageService.removeItem('codeVerifier');
   }
 
@@ -31,7 +30,6 @@ export class PkceService {
         const codeVerifier = this.stripSymbols(lib.WordArray.random(32).toString(enc.Base64));
         const codeChallenge = this.stripSymbols(SHA256(codeVerifier).toString(enc.Base64));
 
-        this.storageService.setItem('code', codeChallenge);
         this.storageService.setItem('codeVerifier', codeVerifier);
         this.challengePair$.next({ codeChallenge, codeVerifier });
       }
@@ -39,11 +37,9 @@ export class PkceService {
   }
 
   private async challengeFromStorage() {
-    const codeChallenge = await this.storageService.getItem('code');
-    if (!codeChallenge) return null;
     const codeVerifier = await this.storageService.getItem('codeVerifier');
     if (!codeVerifier) return null;
-    return { codeChallenge, codeVerifier };
+    return { codeChallenge: null, codeVerifier };
   }
 
   private stripSymbols(str: string): string {
