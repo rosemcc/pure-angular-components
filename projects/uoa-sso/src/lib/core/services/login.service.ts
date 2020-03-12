@@ -15,30 +15,22 @@ export class LoginService {
     return !(await this.authService.hasTokenExpired());
   }
 
-  public async doLogin(targetReturnUrl?: string): Promise<void> {
+  public async doLogin(targetReturnUrl?: string): Promise<any> {
     this.storageService.setItem('targetUrl', targetReturnUrl);
-    await this.authService.obtainValidAccessToken();
+    return await this.authService.obtainValidAccessToken();
   }
-/*
-  public async loginSuccess(): Promise<void> {
-    const inboundCode = this.route.snapshot.queryParams['code'];
-    if (!!inboundCode) {
-        this.authService.exchangeCodeForTokens(inboundCode);
-    } else {
-        await this.authService.obtainValidAccessToken();
-    }
-  }
-*/
-
 
   public async loginSuccess(): Promise<void> {
     await this.route.queryParamMap
       .pipe(
-        skip(1),
-        filter(params => !!params && params.has('code')),
+        filter(params => !!params),
         tap(param => {
-          this.authService.exchangeCodeForTokens(param.get('code'));
-          console.log('code exchange happened successfully');
+          if (param.get('code')) {
+            this.authService.exchangeCodeForTokens(param.get('code'));
+            console.log('code exchange happened successfully');
+          } else if (param.get('error')) {
+            console.log('error from server');
+          }
         })
       )
       .toPromise();

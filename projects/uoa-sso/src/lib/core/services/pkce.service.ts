@@ -14,24 +14,24 @@ export interface ChallengePair {
 export class PkceService {
   public challengePair$: BehaviorSubject<ChallengePair> = new BehaviorSubject(null);
 
-  constructor(private storageService: StorageService) {
-    this.loadOrGeneratePair();
-  }
+  constructor(private storageService: StorageService) {}
 
   public clearChallengeFromStorage(): void {
     this.storageService.removeItem('codeVerifier');
   }
 
-  private loadOrGeneratePair(): void {
+  public loadOrGeneratePair(): void {
     this.challengeFromStorage().then(challenge => {
-      if (challenge) {
-        this.challengePair$.next(challenge);
-      } else {
-        const codeVerifier = this.stripSymbols(lib.WordArray.random(32).toString(enc.Base64));
-        const codeChallenge = this.stripSymbols(SHA256(codeVerifier).toString(enc.Base64));
-
-        this.storageService.setItem('codeVerifier', codeVerifier);
-        this.challengePair$.next({ codeChallenge, codeVerifier });
+      const challengePair = this.challengePair$.getValue();
+      if (!challengePair) {
+        if (challenge) {
+          this.challengePair$.next(challenge);
+        } else {
+          const codeVerifier = this.stripSymbols(lib.WordArray.random(32).toString(enc.Base64));
+          const codeChallenge = this.stripSymbols(SHA256(codeVerifier).toString(enc.Base64));
+          this.storageService.setItem('codeVerifier', codeVerifier);
+          this.challengePair$.next({ codeChallenge, codeVerifier });
+        }
       }
     });
   }
