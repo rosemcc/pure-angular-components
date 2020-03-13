@@ -15,9 +15,9 @@ export class LoginService {
     return !(await this.authService.hasTokenExpired());
   }
 
-  public async doLogin(targetReturnUrl?: string): Promise<any> {
+  public async doLogin(targetReturnUrl?: string): Promise<boolean> {
     this.storageService.setItem('targetUrl', targetReturnUrl);
-    return await this.authService.obtainValidAccessToken().toPromise();
+    return await this.authService.obtainValidAccessToken();
   }
 
   public async loginSuccess(): Promise<void> {

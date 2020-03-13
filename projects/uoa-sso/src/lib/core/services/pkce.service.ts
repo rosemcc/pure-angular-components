@@ -14,9 +14,7 @@ export interface ChallengePair {
 export class PkceService {
   public challengePair$: BehaviorSubject<ChallengePair> = new BehaviorSubject(null);
 
-  constructor(private storageService: StorageService) {
-    this.loadOrGeneratePair();
-  }
+  constructor(private storageService: StorageService) {}
 
   public clearChallengeFromStorage(): void {
     this.storageService.removeItem('codeVerifier');
