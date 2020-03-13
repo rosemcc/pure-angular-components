@@ -17,7 +17,7 @@ export class AuthInterceptor implements HttpInterceptor {
   }
 
   private async handleAccessToken(req: HttpRequest<any>, next: HttpHandler) {
-    const token = 'Bearer ' + (await this.authService.obtainValidAccessToken());
+    const token = 'Bearer ' + (await this.authService.obtainValidAccessToken().toPromise());
     const newReq = this.appendAuthHeader(req, token);
     return next.handle(newReq).toPromise();
   }

@@ -3,15 +3,17 @@ import { Router } from '@angular/router';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { OAuth2Urls } from '../interfaces';
 import { StorageService, CognitoConfig, PkceService, UrlBuilder } from '.';
-import { ReplaySubject } from 'rxjs';
-import { finalize, filter, tap, take } from 'rxjs/operators';
+import { ReplaySubject, Observable, Observer } from 'rxjs';
+import { finalize, filter, tap, take, mergeMap } from 'rxjs/operators';
 import { untilDestroyed } from 'ngx-take-until-destroy';
+import { Lock } from './lock';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService implements OnDestroy {
   private oAuth2Urls$: ReplaySubject<OAuth2Urls> = new ReplaySubject(1);
+  private fetchTokenLock = new Lock();
 
   constructor(
     private httpClient: HttpClient,
@@ -49,27 +51,48 @@ export class AuthService implements OnDestroy {
     this.storageService.setItem('expiresAt', decodedToken.exp);
   }
 
-  public async obtainValidAccessToken() {
-    this.pkceService.loadOrGeneratePair();
-    if (await this.hasTokenExpired()) {
-      // check if we have a refreshToken
-      const refreshToken = await this.storageService.getItem('refreshToken');
-      if (refreshToken) {
-        await this.exchangeRefreshTokenForTokens(refreshToken);
-        return await this.storageService.getItem('accessToken');
-      } else {
-        // invalid token and no refresh token = start over
-        return this.navigateToAuthUrl();
-      }
-    } else {
-      const token = await this.storageService.getItem('accessToken');
-      // some evil developer probably deleted the token from storage
-      if (!token) {
-        return this.navigateToAuthUrl();
-      } else {
-        return token;
-      }
-    }
+  public obtainValidAccessToken(): Observable<string> {
+    return this.fetchTokenLock
+      .acquire()
+      .pipe(
+        mergeMap(() => this.getAccessToken()),
+        finalize(() => this.fetchTokenLock.release())
+      )
+  }
+
+  private getAccessToken(): Observable<string> {
+    return Observable.create((observer: Observer<string>) => {
+        
+      this.hasTokenExpired().then(expired => {
+            
+        if (expired) {
+          // check if we have a refreshToken
+          this.storageService.getItem('refreshToken').then(refreshToken => {
+            if (refreshToken) {
+              this.exchangeRefreshTokenForTokens(refreshToken).then((token) => {
+                observer.next(token);
+                observer.complete();
+              })
+            } else {
+              console.info('Invalid token and no refresh token. Redirecting to login.');
+              this.navigateToAuthUrl();
+            }
+          });
+          
+        } else {
+          this.storageService.getItem('accessToken').then(token => {
+            // some evil developer probably deleted the token from storage
+            if (!token) {
+              this.navigateToAuthUrl();
+            } else {
+              observer.next(token);
+              observer.complete();
+            }
+          });
+        }
+
+      })
+    });
   }
 
   public logout() {
@@ -146,7 +169,7 @@ export class AuthService implements OnDestroy {
     return JSON.parse(window.atob(base64));
   }
 
-  private exchangeRefreshTokenForTokens(refreshToken) {
+  private async exchangeRefreshTokenForTokens(refreshToken): Promise<string> {
     const headers = new HttpHeaders({
       'Content-Type': 'application/x-www-form-urlencoded'
     });
@@ -156,11 +179,10 @@ export class AuthService implements OnDestroy {
       .set('client_id', this.cognitoConfig.cognitoClientId)
       .set('grant_type', 'refresh_token');
 
-    this.oAuth2Urls$.pipe(take(1)).subscribe(urls => {
-      this.httpClient.post(urls.tokenEndpoint, body.toString(), { headers }).subscribe(res => {
-        const allTokens = { ...res, refresh_token: refreshToken };
-        this.storeTokens(allTokens);
-      });
-    });
+    const urls = await this.oAuth2Urls$.toPromise();
+    const tokens = await this.httpClient.post(urls.tokenEndpoint, body.toString(), { headers }).toPromise();
+    const allTokens = { ...tokens, refresh_token: refreshToken };
+    this.storeTokens(allTokens);
+    return (tokens as any).accessToken;
   }
 }

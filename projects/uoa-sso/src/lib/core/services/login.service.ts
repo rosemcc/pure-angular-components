@@ -17,7 +17,7 @@ export class LoginService {
 
   public async doLogin(targetReturnUrl?: string): Promise<any> {
     this.storageService.setItem('targetUrl', targetReturnUrl);
-    return await this.authService.obtainValidAccessToken();
+    return await this.authService.obtainValidAccessToken().toPromise();
   }
 
   public async loginSuccess(): Promise<void> {
