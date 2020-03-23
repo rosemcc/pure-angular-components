@@ -1,1 +1,2 @@
-export * from './oauth2.interface'
+export * from './auth2Dto.interface';
+export * from './userInfoDto.interface';
