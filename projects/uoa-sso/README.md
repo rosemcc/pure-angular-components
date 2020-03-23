@@ -6,9 +6,9 @@ Place library as a peer dependency in the same parent folder of your repo. Alter
 
 In your app.module.ts import these two, eg:
 
-`import { CognitoConfig, CoreModule } from '../../../uoa-common/projects/uoa-sso/src/public-api'`
+`import { CognitoConfig, AuthModule } from 'resources/dist/uoa-sso';`
 
-Include CoreModule in your imports[], but include CognitoConfig as a provider:
+Include AuthModule in your imports[], but include CognitoConfig as a provider:
 
 `{ provide: CognitoConfig, useClass: AppAuthConfig }`
 
