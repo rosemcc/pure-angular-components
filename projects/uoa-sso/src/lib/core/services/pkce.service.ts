@@ -14,35 +14,37 @@ export interface ChallengePair {
 export class PkceService {
   public challengePair$: BehaviorSubject<ChallengePair> = new BehaviorSubject(null);
 
-  constructor(private storageService: StorageService) {
-    this.loadOrGeneratePair();
-  }
+  constructor(private storageService: StorageService) {}
 
   public clearChallengeFromStorage(): void {
     this.storageService.removeItem('codeVerifier');
   }
 
-  private loadOrGeneratePair(): void {
-    this.challengeFromStorage().then(challenge => {
-      if (challenge) {
+  public loadChallengePair(): void {
+    this._challengeFromStorage().then(challenge => {
+      const challengePair = this.challengePair$.getValue();
+      if (!challengePair && challenge) {
         this.challengePair$.next(challenge);
       } else {
-        const codeVerifier = this.stripSymbols(lib.WordArray.random(32).toString(enc.Base64));
-        const codeChallenge = this.stripSymbols(SHA256(codeVerifier).toString(enc.Base64));
-
-        this.storageService.setItem('codeVerifier', codeVerifier);
-        this.challengePair$.next({ codeChallenge, codeVerifier });
+        this.generateChallengePair();
       }
     });
   }
 
-  private async challengeFromStorage() {
+  public generateChallengePair(): void {
+    const codeVerifier = this._stripSymbols(lib.WordArray.random(32).toString(enc.Base64));
+    const codeChallenge = this._stripSymbols(SHA256(codeVerifier).toString(enc.Base64));
+    this.storageService.setItem('codeVerifier', codeVerifier);
+    this.challengePair$.next({ codeChallenge, codeVerifier });
+  }
+
+  private async _challengeFromStorage(): Promise<ChallengePair> {
     const codeVerifier = await this.storageService.getItem('codeVerifier');
     if (!codeVerifier) return null;
     return { codeChallenge: null, codeVerifier };
   }
 
-  private stripSymbols(str: string): string {
+  private _stripSymbols(str: string): string {
     return str
       .replace(/\+/g, '-')
       .replace(/\//g, '_')

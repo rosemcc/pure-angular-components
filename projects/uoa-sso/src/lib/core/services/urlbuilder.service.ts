@@ -1,12 +1,12 @@
 import { Injectable } from '@angular/core';
-import { OAuth2Urls } from '../interfaces';
+import { Auth2UrlsDto } from '../interfaces';
 import { CognitoConfig, ChallengePair } from '.';
 
 @Injectable({
   providedIn: 'root'
 })
 export class UrlBuilder {
-  buildCognitoUrls(config: CognitoConfig, codeChallenge: ChallengePair): OAuth2Urls {
+  public buildCognitoUrls(config: CognitoConfig, codeChallenge: ChallengePair): Auth2UrlsDto {
     const authorizeEndpoint = `https://${config.cognitoDomain}.auth.${config.cognitoAwsRegion}.amazoncognito.com/oauth2/authorize`;
     return {
       discoveryEndpoint: `https://cognito-idp.${config.cognitoAwsRegion}.amazonaws.com/${config.cognitoUserPoolId}/.well-known/openid-configuration`,

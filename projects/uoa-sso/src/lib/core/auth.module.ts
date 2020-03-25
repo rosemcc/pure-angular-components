@@ -11,4 +11,4 @@ import { AuthInterceptor, AuthClientErrorInterceptor } from './interceptors';
     //  { provide: HTTP_INTERCEPTORS, useClass: AuthClientErrorInterceptor, multi: true }
   ]
 })
-export class CoreModule {}
+export class AuthModule {}
