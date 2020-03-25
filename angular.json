@@ -42,7 +42,7 @@
       "projectType": "library",
       "root": "projects/uoa-sso",
       "sourceRoot": "projects/uoa-sso/src",
-      "prefix": "lib",
+      "prefix": "uoa",
       "architect": {
         "build": {
           "builder": "@angular-devkit/build-ng-packagr:build",
