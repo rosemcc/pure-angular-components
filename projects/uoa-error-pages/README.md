@@ -27,11 +27,13 @@ and call following method before your api call:
 
 `this._bypass.bypassError('https://localhost:3000/search-by-name/', [409, 401, 504, 404]);`
 
+Library will skip mentioned error statuses for given end point.
+
 Default Error codes are as follow:
 
 ```
-  clientErrorCodes = [400, 401, 403, 404, 408, 409];
-  serverErrorCodes = [500, 502, 503, 504];
+  clientErrorCodes = [400, 401, 403, 404, 405, 406, 407, 408, 409, 410, 411, 412, 413, 414, 415];
+  serverErrorCodes = [500, 501, 502, 503, 504, 505, 506];
 ```
 
 Error Templete is defined for all the above codes.
@@ -51,15 +53,10 @@ export class AppErrorsConfig extends UoaErrorsConfig {
   constructor() {
     super();
 
-    this.clientErrorCodes = [408, 400, 409];
-    this.serverErrorCodes = [501, 504, 506];
+    this.serverErrorCodes = [501, 504, 505];
 
-    this.ErrorPageContent.ErrorCode400 = { title: 'Custom title', content: 'Custom description' };
-    this.ErrorPageContent['ErrorCode506'] = {
-      title: 'Variant also varies!',
-      content: `A variant for the requested entity is itself a negotiable resource.
-      <p>Access not possible.</p>`
-    };
+    this.ErrorPageContent['ErrorCode400'] = { title: 'Custom title', content: 'Custom description' };
+
   }
 }
 

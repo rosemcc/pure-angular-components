@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
-import { EMPTY, Observable, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+import { finalize, tap } from 'rxjs/operators';
 import { Router } from '@angular/router';
 
 import { UoaErrorsConfig, BypassErrorService } from './../services';
@@ -15,19 +15,20 @@ export class ServerErrorInterceptor implements HttpInterceptor {
   constructor(private router: Router, private _errorConfigService: UoaErrorsConfig, private _bypass: BypassErrorService) {}
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    return next.handle(req).pipe(
-      catchError(error => {
-        const bypassObject = this._bypass.getObjectServerErrorBypassList(req.url);
-        console.debug('bypassObject in server errors list: ', bypassObject);
-        this._bypass.removeErrorServerErrorBypassList(bypassObject);
+    const bypassObject = this._bypass.getObjectServerErrorBypassList(req.url);
+    console.debug('bypassObject in server errors list: ', bypassObject);
 
-        if (this._ERROR_CODES.includes(error.status) && !(bypassObject && bypassObject.status.includes(error.status))) {
-          console.warn(`ServerErrorInterceptor - HTTP ${error.status}`);
-          this.router.navigate(['/error', error.status]);
-          return EMPTY;
+    return next.handle(req).pipe(
+      finalize(() => this._bypass.removeObjectClientErrorBypassList(bypassObject)),
+      tap(
+        res => {},
+        error => {
+          if (this._ERROR_CODES.includes(error.status) && !(bypassObject && bypassObject.status.includes(error.status))) {
+            console.warn(`ServerErrorInterceptor - HTTP ${error.status}`);
+            return this.router.navigate(['/error', error.status]);
+          }
         }
-        return throwError(error);
-      })
+      )
     );
   }
 }
