@@ -1,11 +1,10 @@
 import { Router } from '@angular/router';
 import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, from, EMPTY, throwError } from 'rxjs';
+import { Observable, from } from 'rxjs';
 
 import { CognitoConfig } from '../services';
 import { AuthService } from '../services/auth.service';
-import { catchError } from 'rxjs/operators';
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
@@ -14,17 +13,6 @@ export class AuthInterceptor implements HttpInterceptor {
   public intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     if (this.checkTokenType(req, this.cognitoConfig.bearerTokenUrlFilter)) {
       return from(this.handleAccessToken(req, next));
-      // return from(this.handleAccessToken(req, next)).pipe(
-      //   catchError(error => {
-      //     console.warn(`auth Interceptor - HTTP ${error}`);
-      //     //if (error.status == 400)
-      //     {
-      //       this.authService.navigateToAuthUrl();
-      //       return EMPTY;
-      //     }
-      //     return throwError(error);
-      //   })
-      // );
     }
     return next.handle(req);
   }

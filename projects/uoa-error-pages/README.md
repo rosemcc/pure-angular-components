@@ -38,7 +38,7 @@ Default Error codes are as follow:
 
 Error Templete is defined for all the above codes.
 
-## Optoional Overriding Library Error codes and Error Content
+## Optional Overriding Library Error codes and Error Content
 
 If you want to override default error codes and templates, include UoaErrorsConfig as a provider:
 
