@@ -36,7 +36,7 @@ Default Error codes are as follow:
   serverErrorCodes = [500, 501, 502, 503, 504, 505, 506];
 ```
 
-Error Templete is defined for all the above codes.
+Error Template is defined for all the above codes.
 
 ## Optional Overriding Library Error codes and Error Content
 
