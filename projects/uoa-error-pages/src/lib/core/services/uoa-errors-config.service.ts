@@ -4,7 +4,7 @@ import { Injectable } from '@angular/core';
   providedIn: 'root'
 })
 export class UoaErrorsConfig {
-  public clientErrorCodes = [400, 401, 403, 404, 405, 406, 407, 408, 409, 410, 411, 412, 413, 414, 415];
+  public clientErrorCodes = [400, 401, 403, 404, 405, 406, 407, 408, 409, 410, 411, 412, 413, 414, 415, 418];
   public serverErrorCodes = [500, 501, 502, 503, 504, 505, 506];
   public ErrorPageContent = {
     ErrorCode400: {
@@ -100,6 +100,11 @@ export class UoaErrorsConfig {
        It looks like you’re trying to access a file type that isn’t supported.
        <p><a class="uoa-link" href=https://www.auckland.ac.nz/en/about-us/connect-with-us/contact-us.html>
        Please contact us if you need help or would like to report this issue.</a></p>`
+    },
+    ErrorCode418: {
+      title: `I’m a Teapot`,
+      content: `Sorry, it looks like you’re using the wrong device. This isn’t for coffee, it’s clearly a teapot.
+       <p>If you believe you’re seeing this error incorrectly, you are.</p>`
     },
 
     ErrorCode500: {
