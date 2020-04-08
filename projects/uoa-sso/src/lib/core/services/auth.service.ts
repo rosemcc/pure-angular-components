@@ -68,6 +68,7 @@ export class AuthService implements OnDestroy {
   public async exchangeCodeForTokens(code) {
     this._pkceService.loadChallengePair();
     const urls = await this._cognitoUrls$.pipe(take(1)).toPromise();
+    const oAthUrls = await this._oAuth2Urls$.pipe(take(1)).toPromise();
 
     const headers = new HttpHeaders({
       'Content-Type': 'application/x-www-form-urlencoded',
@@ -76,7 +77,7 @@ export class AuthService implements OnDestroy {
       .set('client_id', this._cognitoConfig.cognitoClientId)
       .set('redirect_uri', urls.redirectUrl)
       .set('code', code)
-      .set('code_verifier', this._pkceService.challengePair$.getValue().codeVerifier)
+      .set('code_verifier', oAthUrls.codeVerifier)
       .set('grant_type', 'authorization_code');
 
     await this._httpClient

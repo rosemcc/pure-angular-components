@@ -25,6 +25,7 @@ export class UrlBuilder {
       }&code_challenge=${codeChallenge.codeChallenge}&code_challenge_method=${config.codeChallengeMethod}&scope=${encodeURI(
         config.scopes
       )}`,
+      codeVerifier: codeChallenge.codeVerifier,
     };
   }
 
