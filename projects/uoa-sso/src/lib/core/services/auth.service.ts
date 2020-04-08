@@ -6,14 +6,15 @@ import { ReplaySubject } from 'rxjs';
 import { finalize, filter, take } from 'rxjs/operators';
 import { untilDestroyed } from 'ngx-take-until-destroy';
 
-import { Auth2UrlsDto, UserInfoDto } from '../interfaces';
+import { Auth2UrlsDto, UserInfoDto, Cognito2UrlsDto } from '../interfaces';
 import { StorageService, CognitoConfig, PkceService, UrlBuilder } from '.';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AuthService implements OnDestroy {
   private _oAuth2Urls$: ReplaySubject<Auth2UrlsDto> = new ReplaySubject(1);
+  private _cognitoUrls$: ReplaySubject<Cognito2UrlsDto> = new ReplaySubject(1);
 
   constructor(
     private _httpClient: HttpClient,
@@ -23,12 +24,13 @@ export class AuthService implements OnDestroy {
     private _cognitoConfig: CognitoConfig,
     private _storageService: StorageService
   ) {
+    this._cognitoUrls$.next(this._urlBuilder.buildCognitoUrls(this._cognitoConfig));
     this._pkceService.challengePair$
       .pipe(
-        filter(challengePair => !!challengePair),
+        filter((challengePair) => !!challengePair),
         untilDestroyed(this)
       )
-      .subscribe(pair => this._oAuth2Urls$.next(this._urlBuilder.buildCognitoUrls(this._cognitoConfig, pair)));
+      .subscribe((pair) => this._oAuth2Urls$.next(this._urlBuilder.buildCognitoAuthUrl(this._cognitoConfig, pair)));
   }
 
   ngOnDestroy() {}
@@ -65,10 +67,10 @@ export class AuthService implements OnDestroy {
 
   public async exchangeCodeForTokens(code) {
     this._pkceService.loadChallengePair();
-    const urls = await this._oAuth2Urls$.pipe(take(1)).toPromise();
+    const urls = await this._cognitoUrls$.pipe(take(1)).toPromise();
 
     const headers = new HttpHeaders({
-      'Content-Type': 'application/x-www-form-urlencoded'
+      'Content-Type': 'application/x-www-form-urlencoded',
     });
     const body = new HttpParams()
       .set('client_id', this._cognitoConfig.cognitoClientId)
@@ -86,18 +88,18 @@ export class AuthService implements OnDestroy {
         })
       )
       .toPromise()
-      .then(res => this._storeTokens(res));
+      .then((res) => this._storeTokens(res));
   }
 
   public logout(): void {
-    this._oAuth2Urls$.subscribe(urls => {
+    this._cognitoUrls$.subscribe((urls) => {
       this._httpClient.get(urls.logoutUrl, {});
       this._clearOurTokens();
     });
   }
 
   public returnToTargetRoute() {
-    this._storageService.getItem('targetUrl').then(res => {
+    this._storageService.getItem('targetUrl').then((res) => {
       const url = res ? res : '/';
       this._router.navigate([url]);
     });
@@ -123,7 +125,7 @@ export class AuthService implements OnDestroy {
 
   private _navigateToAuthUrl() {
     this._pkceService.generateChallengePair();
-    this._oAuth2Urls$.pipe(take(1)).subscribe(urls => window.open(urls.authorizeUrl, '_self'));
+    this._oAuth2Urls$.pipe(take(1)).subscribe((urls) => window.open(urls.authorizeUrl, '_self'));
   }
 
   private _storeTokens(tokens): void {
@@ -153,7 +155,7 @@ export class AuthService implements OnDestroy {
 
   private async _exchangeRefreshTokenForTokens(refreshToken) {
     const headers = new HttpHeaders({
-      'Content-Type': 'application/x-www-form-urlencoded'
+      'Content-Type': 'application/x-www-form-urlencoded',
     });
 
     const body = new HttpParams()
@@ -161,11 +163,11 @@ export class AuthService implements OnDestroy {
       .set('client_id', this._cognitoConfig.cognitoClientId)
       .set('grant_type', 'refresh_token');
 
-    const urls = await this._oAuth2Urls$.pipe(take(1)).toPromise();
+    const urls = await this._cognitoUrls$.pipe(take(1)).toPromise();
     const tokens = await this._httpClient
       .post(urls.tokenEndpoint, body.toString(), { headers })
       .toPromise()
-      .catch(_ => {
+      .catch((_) => {
         this._clearOurTokens();
         this._navigateToAuthUrl();
       });
