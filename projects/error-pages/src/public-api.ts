@@ -1,5 +1,5 @@
 /*
- * Public API Surface of uoa-error-pages
+ * Public API Surface of error-pages
  */
 
 export * from './lib/core/services/uoa-errors-config.service';

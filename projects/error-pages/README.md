@@ -6,7 +6,7 @@ Place library as a peer dependency in the same parent folder of your repo. Alter
 
 In your app.module.ts import ErrorPagesModule, eg:
 
-`import { ErrorPagesModule } from 'resources/dist/uoa-error-pages';`
+`import { ErrorPagesModule } from 'resources/dist/error-pages';`
 
 Include ErrorPagesModule in your imports[].
 
@@ -15,13 +15,13 @@ Go to routing module of application and add error route to routes. Here is an ex
 ```
 {
     path: 'error/:errorCode',
-    loadChildren: () => import('resources/dist/uoa-error-pages').then(m => m.ErrorPagesModule)
+    loadChildren: () => import('resources/dist/error-pages').then(m => m.ErrorPagesModule)
 }
 ```
 
 If you want to handle specific error code for any endpoint inside project. import BypassErrorService to your Service
 
-`import { BypassErrorService } from 'resources/dist/uoa-error-pages';`
+`import { BypassErrorService } from 'resources/dist/error-pages';`
 
 and call following method before your api call:
 
@@ -47,7 +47,7 @@ If you want to override default error codes and templates, include UoaErrorsConf
 You will need to create this AppErrorsConfig class, where you assign new values to existing objects or add new objects properties. Here is an example:
 
 ```
-import { UoaErrorsConfig } from 'resources/dist/uoa-error-pages';
+import { UoaErrorsConfig } from 'resources/dist/error-pages';
 
 export class AppErrorsConfig extends UoaErrorsConfig {
   constructor() {
@@ -61,25 +61,3 @@ export class AppErrorsConfig extends UoaErrorsConfig {
 }
 
 ```
-
-## Code scaffolding
-
-Run `ng generate component component-name --project uoa-error-pages` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module --project uoa-error-pages`.
-
-> Note: Don't forget to add `--project uoa-error-pages` or else it will be added to the default project in your `angular.json` file.
-
-## Build
-
-Run `ng build uoa-error-pages` to build the project. The build artifacts will be stored in the `dist/` directory.
-
-## Publishing
-
-After building your library with `ng build uoa-error-pages`, go to the dist folder `cd dist/uoa-error-pages` and run `npm publish`.
-
-## Running unit tests
-
-Run `ng test uoa-error-pages` to execute the unit tests via [Karma](https://karma-runner.github.io).
-
-## Further help
-
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI README](https://github.com/angular/angular-cli/blob/master/README.md).

@@ -68,36 +68,36 @@
         }
       }
     },
-    "uoa-error-pages": {
+    "error-pages": {
       "projectType": "library",
-      "root": "projects/uoa-error-pages",
-      "sourceRoot": "projects/uoa-error-pages/src",
+      "root": "projects/error-pages",
+      "sourceRoot": "projects/error-pages/src",
       "prefix": "uoa",
       "architect": {
         "build": {
           "builder": "@angular-devkit/build-ng-packagr:build",
           "options": {
-            "tsConfig": "projects/uoa-error-pages/tsconfig.lib.json",
-            "project": "projects/uoa-error-pages/ng-package.json"
+            "tsConfig": "projects/error-pages/tsconfig.lib.json",
+            "project": "projects/error-pages/ng-package.json"
           },
           "configurations": {
             "production": {
-              "tsConfig": "projects/uoa-error-pages/tsconfig.lib.prod.json"
+              "tsConfig": "projects/error-pages/tsconfig.lib.prod.json"
             }
           }
         },
         "test": {
           "builder": "@angular-devkit/build-angular:karma",
           "options": {
-            "main": "projects/uoa-error-pages/src/test.ts",
-            "tsConfig": "projects/uoa-error-pages/tsconfig.spec.json",
-            "karmaConfig": "projects/uoa-error-pages/karma.conf.js"
+            "main": "projects/error-pages/src/test.ts",
+            "tsConfig": "projects/error-pages/tsconfig.spec.json",
+            "karmaConfig": "projects/error-pages/karma.conf.js"
           }
         },
         "lint": {
           "builder": "@angular-devkit/build-angular:tslint",
           "options": {
-            "tsConfig": ["projects/uoa-error-pages/tsconfig.lib.json", "projects/uoa-error-pages/tsconfig.spec.json"],
+            "tsConfig": ["projects/error-pages/tsconfig.lib.json", "projects/error-pages/tsconfig.spec.json"],
             "exclude": ["**/node_modules/**"]
           }
         }
