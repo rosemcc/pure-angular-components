@@ -2,7 +2,7 @@ import { Injectable, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 
-import { ReplaySubject } from 'rxjs';
+import { ReplaySubject, combineLatest } from 'rxjs';
 import { finalize, filter, take } from 'rxjs/operators';
 import { untilDestroyed } from 'ngx-take-until-destroy';
 
@@ -24,13 +24,14 @@ export class AuthService implements OnDestroy {
     private _cognitoConfig: CognitoConfig,
     private _storageService: StorageService
   ) {
-    this._cognitoUrls$.next(this._urlBuilder.buildCognitoUrls(this._cognitoConfig));
-    this._pkceService.challengePair$
+    this._cognitoUrls$ = this._urlBuilder.cognitoUrls;
+    this._urlBuilder.getEndPoints(this._cognitoConfig);
+    combineLatest([this._pkceService.challengePair$, this._cognitoUrls$])
       .pipe(
-        filter((challengePair) => !!challengePair),
+        filter(([challengePair, urls]) => !!challengePair),
         untilDestroyed(this)
       )
-      .subscribe((pair) => this._oAuth2Urls$.next(this._urlBuilder.buildCognitoAuthUrl(this._cognitoConfig, pair)));
+      .subscribe(([pair]) => this._oAuth2Urls$.next(this._urlBuilder.buildCognitoAuthUrl(this._cognitoConfig, pair)));
   }
 
   ngOnDestroy() {}

@@ -1,35 +1,44 @@
 import { Injectable } from '@angular/core';
-import { Auth2UrlsDto, Cognito2UrlsDto } from '../interfaces';
+import { Auth2UrlsDto, Cognito2UrlsDto, DiscoverUrlsDto } from '../interfaces';
 import { CognitoConfig, ChallengePair } from '.';
+import { HttpClient } from '@angular/common/http';
+import { ReplaySubject } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
 })
 export class UrlBuilder {
-  public buildCognitoUrls(config: CognitoConfig): Cognito2UrlsDto {
-    const authorizeEndpoint = this._authorizeEndpoint(config);
+  private _discoveryEndpoint: string;
+  private _authorizeEndpoint: string;
+  public cognitoUrls = new ReplaySubject<Cognito2UrlsDto>(1);
+
+  constructor(private _httpClient: HttpClient) {}
+
+  public getEndPoints(config: CognitoConfig): void {
+    this._discoveryEndpoint = `https://cognito-idp.${config.cognitoAwsRegion}.amazonaws.com/${config.cognitoUserPoolId}/.well-known/openid-configuration`;
+    this._httpClient
+      .get<DiscoverUrlsDto>(this._discoveryEndpoint)
+      .subscribe((res) => this.cognitoUrls.next(this.buildCognitoUrls(res, config)));
+  }
+
+  public buildCognitoUrls(urls: DiscoverUrlsDto, config: CognitoConfig): Cognito2UrlsDto {
     return {
-      discoveryEndpoint: `https://cognito-idp.${config.cognitoAwsRegion}.amazonaws.com/${config.cognitoUserPoolId}/.well-known/openid-configuration`,
-      authorizeEndpoint,
-      tokenEndpoint: `https://${config.cognitoDomain}.auth.${config.cognitoAwsRegion}.amazoncognito.com/oauth2/token`,
+      discoveryEndpoint: this._discoveryEndpoint,
+      authorizeEndpoint: urls.authorization_endpoint,
+      tokenEndpoint: urls.token_endpoint,
       logoutUrl: `https://${config.cognitoDomain}.auth.${config.cognitoAwsRegion}/logout`,
       redirectUrl: config.redirectUri,
     };
   }
 
   public buildCognitoAuthUrl(config: CognitoConfig, codeChallenge: ChallengePair): Auth2UrlsDto {
-    const authorizeEndpoint = this._authorizeEndpoint(config);
     return {
-      authorizeUrl: `${authorizeEndpoint}?client_id=${config.cognitoClientId}&response_type=code&redirect_uri=${
+      authorizeUrl: `${this._authorizeEndpoint}?client_id=${config.cognitoClientId}&response_type=code&redirect_uri=${
         config.redirectUri
       }&code_challenge=${codeChallenge.codeChallenge}&code_challenge_method=${config.codeChallengeMethod}&scope=${encodeURI(
         config.scopes
       )}`,
       codeVerifier: codeChallenge.codeVerifier,
     };
-  }
-
-  private _authorizeEndpoint(config: CognitoConfig): string {
-    return `https://${config.cognitoDomain}.auth.${config.cognitoAwsRegion}.amazoncognito.com/oauth2/authorize`;
   }
 }
