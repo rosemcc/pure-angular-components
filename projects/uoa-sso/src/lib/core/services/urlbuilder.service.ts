@@ -22,6 +22,7 @@ export class UrlBuilder {
   }
 
   public buildCognitoUrls(urls: DiscoverUrlsDto, config: CognitoConfig): Cognito2UrlsDto {
+    this._authorizeEndpoint = urls.authorization_endpoint;
     return {
       discoveryEndpoint: this._discoveryEndpoint,
       authorizeEndpoint: urls.authorization_endpoint,

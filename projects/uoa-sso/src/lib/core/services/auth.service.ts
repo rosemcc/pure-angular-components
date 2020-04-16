@@ -31,7 +31,7 @@ export class AuthService implements OnDestroy {
         filter(([challengePair, urls]) => !!challengePair),
         untilDestroyed(this)
       )
-      .subscribe(([pair]) => this._oAuth2Urls$.next(this._urlBuilder.buildCognitoAuthUrl(this._cognitoConfig, pair)));
+      .subscribe(([pair, url]) => this._oAuth2Urls$.next(this._urlBuilder.buildCognitoAuthUrl(this._cognitoConfig, pair)));
   }
 
   ngOnDestroy() {}
