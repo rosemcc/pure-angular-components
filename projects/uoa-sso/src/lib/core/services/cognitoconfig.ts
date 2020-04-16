@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class CognitoConfig {
   public cognitoAwsRegion: string;
@@ -12,5 +12,4 @@ export class CognitoConfig {
   public codeChallengeMethod: string;
   public scopes: string;
   public bearerTokenUrlFilter: string[];
-  public idTokenUrlFilter: string[];
 }
