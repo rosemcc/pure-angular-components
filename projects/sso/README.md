@@ -6,7 +6,7 @@ Place library as a peer dependency in the same parent folder of your repo. Alter
 
 In your app.module.ts import these two, eg:
 
-`import { CognitoConfig, AuthModule } from 'resources/dist/uoa-sso';`
+`import { CognitoConfig, AuthModule } from 'resources/dist/sso';`
 
 Include AuthModule in your imports[], but include CognitoConfig as a provider:
 
@@ -15,7 +15,7 @@ Include AuthModule in your imports[], but include CognitoConfig as a provider:
 You will need to create this AppAuthConfig class, which assigns each property from your environment file. here is an example:
 
 ```
-import { CognitoConfig } from '../../../uoa-common/projects/uoa-sso/src/public-api';
+import { CognitoConfig } from '../../../uoa-common/projects/sso/src/public-api';
 import { environment } from 'src/environments/environment';
 import { Injectable } from '@angular/core';
 
@@ -64,25 +64,3 @@ export class AuthGuard implements CanActivate {
 ```
 
 Add guard to your routes.
-
-## Code scaffolding
-
-Run `ng generate component component-name --project uoa-sso` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module --project uoa-sso`.
-
-> Note: Don't forget to add `--project uoa-sso` or else it will be added to the default project in your `angular.json` file.
-
-## Build
-
-Run `ng build uoa-sso` to build the project. The build artifacts will be stored in the `dist/` directory.
-
-## Publishing
-
-After building your library with `ng build uoa-sso`, go to the dist folder `cd dist/uoa-sso` and run `npm publish`.
-
-## Running unit tests
-
-Run `ng test uoa-sso` to execute the unit tests via [Karma](https://karma-runner.github.io).
-
-## Further help
-
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI README](https://github.com/angular/angular-cli/blob/master/README.md).

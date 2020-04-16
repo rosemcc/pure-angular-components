@@ -1,5 +1,5 @@
 {
-  "name": "uoa-sso",
+  "name": "@uoa/sso",
   "version": "0.0.1",
   "peerDependencies": {
     "@angular/common": ">=8.0.2",

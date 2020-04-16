@@ -1,5 +1,5 @@
 /*
- * Public API Surface of uoa-sso
+ * Public API Surface of sso
  */
 
 export * from './lib/core/auth.module';

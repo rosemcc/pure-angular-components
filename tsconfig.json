@@ -16,7 +16,7 @@
     "paths": {
       "uoa-controls": ["dist/uoa-controls"],
       "uoa-controls/*": ["dist/uoa-controls/*"],
-      "uoa-sso": ["dist/uoa-sso/uoa-sso", "dist/uoa-sso"]
+      "sso": ["dist/sso/sso", "dist/sso"]
     }
   },
   "angularCompilerOptions": {
