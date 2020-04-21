@@ -4,10 +4,11 @@ import { HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/c
 import { Observable } from 'rxjs';
 import { tap, finalize } from 'rxjs/operators';
 
-import { UoaErrorsConfig, BypassErrorService } from './../services';
+import { UoaErrorsConfig } from '../services/uoa-errors-config.service';
+import { BypassErrorService } from '../services/bypass-error.service';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ClientErrorInterceptor implements HttpInterceptor {
   private _ERROR_CODES = this._errorConfigService.clientErrorCodes;
@@ -20,8 +21,8 @@ export class ClientErrorInterceptor implements HttpInterceptor {
     return next.handle(req).pipe(
       finalize(() => this._bypass.removeObjectClientErrorBypassList(bypassObject)),
       tap(
-        res => {},
-        error => {
+        (res) => {},
+        (error) => {
           if (this._ERROR_CODES.includes(error.status) && !(bypassObject && bypassObject.status.includes(error.status))) {
             console.warn(`ClientErrorInterceptor - HTTP ${error.status}`);
             return this.router.navigate(['/error', error.status]);

@@ -1,13 +1,14 @@
 import { Component } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 
-import { UoaErrorsConfig, BypassErrorService } from './../../core/services';
+import { UoaErrorsConfig } from './../../core/services/uoa-errors-config.service';
+import { BypassErrorService } from './../../core/services/bypass-error.service';
 import { ErrorContentDto } from './../../core/interfaces';
 
 @Component({
-  selector: 'uoa-error',
+  selector: 'lib-error',
   templateUrl: 'error.page.html',
-  styleUrls: ['error.page.scss']
+  styleUrls: ['error.page.scss'],
 })
 export class ErrorPage {
   private _errorCodes: number[] = [...this._errorConfigService.clientErrorCodes, ...this._errorConfigService.serverErrorCodes];

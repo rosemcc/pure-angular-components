@@ -2,30 +2,46 @@
 
 ## Usage
 
-Place library as a peer dependency in the same parent folder of your repo. Alternatively use npm to link to a built dist version of the library.
+Install library using command
+
+```
+npm install @uoa/error-pages --save
+```
 
 In your app.module.ts import ErrorPagesModule, eg:
 
-`import { ErrorPagesModule } from 'resources/dist/error-pages';`
+`import { ErrorPagesModule } from '@uoa/error-pages';`
 
 Include ErrorPagesModule in your imports[].
+
+Create an ErrorRoutingModule to define the error page child route
+
+```
+import { ErrorPagesModule, ErrorPage } from '@uoa/error-pages';
+
+@NgModule({
+  imports: [ErrorPagesModule, RouterModule.forChild([{ path: '', component: ErrorPage }])],
+  exports: [RouterModule],
+})
+export class ErrorRoutingModule {}
+```
 
 Go to routing module of application and add error route to routes. Here is an example:
 
 ```
 {
     path: 'error/:errorCode',
-    loadChildren: () => import('resources/dist/error-pages').then(m => m.ErrorPagesModule)
+    loadChildren: () => import('./error-routing.module').then((m) => m.ErrorRoutingModule),
 }
 ```
 
 If you want to handle specific error code for any endpoint inside project. import BypassErrorService to your Service
 
-`import { BypassErrorService } from 'resources/dist/error-pages';`
+`import { BypassErrorService } from '@uoa/error-pages';`
 
 and call following method before your api call:
 
-`this._bypass.bypassError('https://localhost:3000/search-by-name/', [409, 401, 504, 404]);`
+`this._bypass.bypassError('${url}', [409, 401, 504, 404]);`
 
 Library will skip mentioned error statuses for given end point.
 
@@ -38,7 +54,7 @@ Default Error codes are as follow:
 
 Error Template is defined for all the above codes.
 
-## Optional Overriding Library Error codes and Error Content
+## Override Error codes and Error Content
 
 If you want to override default error codes and templates, include UoaErrorsConfig as a provider:
 
@@ -47,7 +63,7 @@ If you want to override default error codes and templates, include UoaErrorsConf
 You will need to create this AppErrorsConfig class, where you assign new values to existing objects or add new objects properties. Here is an example:
 
 ```
-import { UoaErrorsConfig } from 'resources/dist/error-pages';
+import { UoaErrorsConfig } from '@uoa/error-pages';
 
 export class AppErrorsConfig extends UoaErrorsConfig {
   constructor() {

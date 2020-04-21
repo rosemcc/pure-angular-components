@@ -4,7 +4,8 @@ import { Observable } from 'rxjs';
 import { finalize, tap } from 'rxjs/operators';
 import { Router } from '@angular/router';
 
-import { UoaErrorsConfig, BypassErrorService } from '../services';
+import { UoaErrorsConfig } from '../services/uoa-errors-config.service';
+import { BypassErrorService } from '../services/bypass-error.service';
 
 @Injectable({
   providedIn: 'root',
