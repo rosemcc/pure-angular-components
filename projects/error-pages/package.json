@@ -1,6 +1,6 @@
 {
   "name": "@uoa/error-pages",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "peerDependencies": {
     "@angular/common": ">=8.0.2",
     "@angular/core": ">=8.0.2",
