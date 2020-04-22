@@ -71,3 +71,9 @@ export class AuthGuard implements CanActivate {
 ```
 
 Add guard to your routes.
+
+In order to check if user is authenticated or not, use method
+
+```
+this.loginService.isAuthenticated();
+```
