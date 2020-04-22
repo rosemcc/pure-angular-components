@@ -108,7 +108,7 @@ export class UoaErrorsConfig {
     },
     ErrorCode429: {
       title: `Too Many Requests`,
-      content: `ou're seeing this because you've made a large number of requests to our system within a short period of time.
+      content: `You're seeing this because you've made a large number of requests to our system within a short period of time.
       Please wait a minute or two and then try refreshing the page.`,
     },
     ErrorCode431: {
