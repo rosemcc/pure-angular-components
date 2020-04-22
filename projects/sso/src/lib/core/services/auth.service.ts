@@ -6,8 +6,13 @@ import { ReplaySubject, combineLatest } from 'rxjs';
 import { finalize, filter, take } from 'rxjs/operators';
 import { untilDestroyed } from 'ngx-take-until-destroy';
 
+import { BypassErrorService } from '@uoa/error-pages';
+
 import { Auth2UrlsDto, UserInfoDto, Cognito2UrlsDto } from '../interfaces';
-import { StorageService, CognitoConfig, PkceService, UrlBuilder } from '.';
+import { UrlBuilder } from './urlbuilder.service';
+import { CognitoConfigService } from './cognito-config.service';
+import { StorageService } from './storage.service';
+import { PkceService } from './pkce.service';
 
 @Injectable({
   providedIn: 'root',
@@ -21,8 +26,9 @@ export class AuthService implements OnDestroy {
     private _router: Router,
     private _urlBuilder: UrlBuilder,
     private _pkceService: PkceService,
-    private _cognitoConfig: CognitoConfig,
-    private _storageService: StorageService
+    private _cognitoConfig: CognitoConfigService,
+    private _storageService: StorageService,
+    private _bypassErrorService: BypassErrorService
   ) {
     this._cognitoUrls$ = this._urlBuilder.cognitoUrls;
     this._urlBuilder.getEndPoints(this._cognitoConfig);
@@ -166,6 +172,8 @@ export class AuthService implements OnDestroy {
       .set('grant_type', 'refresh_token');
 
     const urls = await this._cognitoUrls$.pipe(take(1)).toPromise();
+    this._bypassErrorService.bypassError(urls.tokenEndpoint, [400, 401, 403, 404]);
+
     const tokens = await this._httpClient
       .post(urls.tokenEndpoint, body.toString(), { headers })
       .toPromise()
