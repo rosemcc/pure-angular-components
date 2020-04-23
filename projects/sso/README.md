@@ -8,11 +8,14 @@ Install library using command
 npm install @uoa/sso --save
 ```
 
-In your app.module.ts import these two, eg:
+In your app.module.ts import following, eg:
 
-`import { AuthModule, CognitoConfigService } from '@uoa/sso';`
+```
+import { IonicStorageModule } from '@ionic/storage';
+import { AuthModule, CognitoConfigService } from '@uoa/sso';
+```
 
-Include AuthModule in your imports[], but include CognitoConfig as a provider:
+Include `AuthModule, IonicStorageModule.forRoot()` in your imports[], but include CognitoConfig as a provider:
 
 `{ provide: CognitoConfigService, useClass: AppAuthConfigService }`
 
@@ -43,7 +46,11 @@ export class AppAuthConfigService extends CognitoConfigService {
 }
 ```
 
-Now from your app component you can hook in to the redirects of the library:
+Now from your app component you can hook in to the redirects of the library. Import login service and implements OnInit:
+
+```
+import { LoginService } from '@uoa/sso';
+```
 
 ```
 async ngOnInit() {
@@ -72,8 +79,10 @@ export class AuthGuard implements CanActivate {
 
 Add guard to your routes.
 
-In order to check if user is authenticated or not, use method
+In order to check if user is authenticated or not, use method:
 
 ```
 this.loginService.isAuthenticated();
 ```
+
+It returns Promise<boolean>.
