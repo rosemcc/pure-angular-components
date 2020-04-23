@@ -5,7 +5,7 @@
 Install library using command
 
 ```
-npm install @uoa/sso --save
+npm install @uoa/sso
 ```
 
 In your app.module.ts import following, eg:
