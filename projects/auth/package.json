@@ -1,13 +1,13 @@
 {
-  "name": "@uoa/sso",
+  "name": "@uoa/auth",
   "version": "0.0.1",
   "author": "Mohsin Baig <mohsin.baig@auckland.ac.nz>",
   "keywords": [
     "uoa",
-    "sso",
-    "sso-library",
-    "single sign on",
-    "aws cognito"
+    "auth",
+    "auth-library",
+    "Authentication",
+    "Authentication AWS Cognito"
   ],
   "peerDependencies": {
     "@angular/common": ">=8.0.2",

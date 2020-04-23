@@ -16,7 +16,7 @@
     "paths": {
       "uoa-controls": ["dist/uoa-controls"],
       "uoa-controls/*": ["dist/uoa-controls/*"],
-      "sso": ["dist/sso/sso", "dist/sso"],
+      "auth": ["dist/auth/auth", "dist/auth"],
       "@uoa/error-pages": ["dist/error-pages/error-pages", "dist/error-pages"]
     }
   },

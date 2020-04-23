@@ -4,7 +4,7 @@ import { filter, tap } from 'rxjs/operators';
 
 import { StorageService } from './storage.service';
 import { AuthService } from './auth.service';
-import { UserInfoDto } from './../interfaces';
+import { UserInfoDto } from '../interfaces';
 
 @Injectable({
   providedIn: 'root',

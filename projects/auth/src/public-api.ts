@@ -1,5 +1,5 @@
 /*
- * Public API Surface of sso
+ * Public API Surface of auth
  */
 
 export * from './lib/core/auth.module';

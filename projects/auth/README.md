@@ -1,18 +1,18 @@
-# Uoa Single Sign-On
+# UOA Authentication Library
 
 ## Usage
 
 Install library using command
 
 ```
-npm install @uoa/sso
+npm install @uoa/auth
 ```
 
 In your app.module.ts import following, eg:
 
 ```
 import { IonicStorageModule } from '@ionic/storage';
-import { AuthModule, CognitoConfigService } from '@uoa/sso';
+import { AuthModule, CognitoConfigService } from '@uoa/auth';
 ```
 
 Include `AuthModule, IonicStorageModule.forRoot()` in your imports[], but include CognitoConfig as a provider:
@@ -24,7 +24,7 @@ You will need to create this AppAuthConfigService class, which assigns each prop
 ```
 import { Injectable } from '@angular/core';
 
-import { CognitoConfigService } from '@uoa/sso';
+import { CognitoConfigService } from '@uoa/auth';
 
 import { environment } from 'src/environments/environment';
 
@@ -49,7 +49,7 @@ export class AppAuthConfigService extends CognitoConfigService {
 Now from your app component you can hook in to the redirects of the library. Import login service and implements OnInit:
 
 ```
-import { LoginService } from '@uoa/sso';
+import { LoginService } from '@uoa/auth';
 ```
 
 ```
@@ -63,7 +63,7 @@ async ngOnInit() {
 Create a authGuard and hook authentication and login methods from Login Service of library:
 
 ```
-import { LoginService } from '@uoa/sso';
+import { LoginService } from '@uoa/auth';
 
 export class AuthGuard implements CanActivate {
 
