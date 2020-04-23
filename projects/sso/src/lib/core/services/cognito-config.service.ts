@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 @Injectable({
   providedIn: 'root',
 })
-export class CognitoConfig {
+export class CognitoConfigService {
   public cognitoAwsRegion: string;
   public cognitoUserPoolId: string;
   public cognitoDomain: string;

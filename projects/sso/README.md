@@ -2,27 +2,36 @@
 
 ## Usage
 
-Place library as a peer dependency in the same parent folder of your repo. Alternatively use npm to link to a built dist version of the library.
-
-In your app.module.ts import these two, eg:
-
-`import { CognitoConfig, AuthModule } from 'resources/dist/sso';`
-
-Include AuthModule in your imports[], but include CognitoConfig as a provider:
-
-`{ provide: CognitoConfig, useClass: AppAuthConfig }`
-
-You will need to create this AppAuthConfig class, which assigns each property from your environment file. here is an example:
+Install library using command
 
 ```
-import { CognitoConfig } from '../../../uoa-common/projects/sso/src/public-api';
-import { environment } from 'src/environments/environment';
+npm install @uoa/sso
+```
+
+In your app.module.ts import following, eg:
+
+```
+import { IonicStorageModule } from '@ionic/storage';
+import { AuthModule, CognitoConfigService } from '@uoa/sso';
+```
+
+Include `AuthModule, IonicStorageModule.forRoot()` in your imports[], but include CognitoConfig as a provider:
+
+`{ provide: CognitoConfigService, useClass: AppAuthConfigService }`
+
+You will need to create this AppAuthConfigService class, which assigns each property from your environment file. here is an example:
+
+```
 import { Injectable } from '@angular/core';
+
+import { CognitoConfigService } from '@uoa/sso';
+
+import { environment } from 'src/environments/environment';
 
 @Injectable({
     providedIn: 'root'
 })
-export class AppAuthConfig extends CognitoConfig {
+export class AppAuthConfigService extends CognitoConfigService {
     constructor() {
         super();
         this.codeChallengeMethod = environment.auth.codeChallengeMethod;
@@ -33,12 +42,15 @@ export class AppAuthConfig extends CognitoConfig {
         this.scopes = environment.auth.scopes;
         this.redirectUri = environment.auth.redirectUri;
         this.bearerTokenUrlFilter = environment.privateUrlKeyWords.whoNeedBearerToken;
-        this.idTokenUrlFilter = environment.privateUrlKeyWords.whoNeedIdToken;
     }
 }
 ```
 
-Now from your app component you can hook in to the redirects of the library:
+Now from your app component you can hook in to the redirects of the library. Import login service and implements OnInit:
+
+```
+import { LoginService } from '@uoa/sso';
+```
 
 ```
 async ngOnInit() {
@@ -51,6 +63,8 @@ async ngOnInit() {
 Create a authGuard and hook authentication and login methods from Login Service of library:
 
 ```
+import { LoginService } from '@uoa/sso';
+
 export class AuthGuard implements CanActivate {
 
   constructor(private loginService : LoginService) {
@@ -64,3 +78,11 @@ export class AuthGuard implements CanActivate {
 ```
 
 Add guard to your routes.
+
+In order to check if user is authenticated or not, use method:
+
+```
+this.loginService.isAuthenticated();
+```
+
+It returns Promise<boolean>.

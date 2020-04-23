@@ -6,7 +6,8 @@
     "umdModuleIds": {
       "crypto-js": "crypto-js",
       "ngx-take-until-destroy": "ngx-take-until-destroy",
-      "@ionic/storage": "@ionic/storage"
+      "@ionic/storage": "@ionic/storage",
+      "@uoa/error-pages": "@uoa/error-pages"
     }
   }
 }
