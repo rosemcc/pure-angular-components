@@ -5,7 +5,7 @@
 Install library using command
 
 ```
-npm install @uoa/error-pages --save
+npm install @uoa/error-pages
 ```
 
 In your app.module.ts import ErrorPagesModule, eg:
@@ -17,6 +17,9 @@ Include ErrorPagesModule in your imports[].
 Create an ErrorRoutingModule to define the error page child route
 
 ```
+import { NgModule } from '@angular/core';
+import { RouterModule } from '@angular/router';
+
 import { ErrorPagesModule, ErrorPage } from '@uoa/error-pages';
 
 @NgModule({
