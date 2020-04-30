@@ -1,0 +1,15 @@
+{
+  "name": "@uoa/error-pages",
+  "version": "0.0.4",
+  "author": "Mohsin Baig <mohsin.baig@auckland.ac.nz>",
+  "keywords": [
+    "uoa",
+    "error-pages",
+    "error-pages-library"
+  ],
+  "peerDependencies": {
+    "@angular/common": ">=8.0.2",
+    "@angular/core": ">=8.0.2",
+    "tslib": ">=1.9.0"
+  }
+}
