@@ -46,7 +46,7 @@ export class AppAuthConfigService extends CognitoConfigService {
 }
 ```
 
-Import guards from library and add it to your routes:
+Import guards from library and add it to your routes, here is an example:
 
 ```
 import { AuthGuard, LoginSuccessGuard } from '@uoa/auth';
