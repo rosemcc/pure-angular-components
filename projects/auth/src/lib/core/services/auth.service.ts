@@ -101,8 +101,11 @@ export class AuthService implements OnDestroy {
 
   public logout(): void {
     this._cognitoUrls$.subscribe((urls) => {
-      this._httpClient.get(urls.logoutUrl, {});
       this._clearOurTokens();
+      window.open(
+        `${urls.logoutUrl}?client_id=${this._cognitoConfig.cognitoClientId}&logout_uri=${this._cognitoConfig.logoutUri}`,
+        '_self'
+      );
     });
   }
 
