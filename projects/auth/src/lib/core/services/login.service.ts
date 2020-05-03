@@ -20,6 +20,10 @@ export class LoginService {
     return await this._authService.obtainValidAccessToken();
   }
 
+  /**
+   *  It is to handle login success case only to use returned code to get token, not Authentication.
+   *  So it should always return true or redirect if there is an error from server.
+   */
   async loginSuccess(state: RouterStateSnapshot): Promise<boolean | UrlTree> {
     const code = state.root.queryParamMap.get('code');
     const error = state.root.queryParamMap.get('error');
