@@ -4,12 +4,18 @@ import { Router, RouterStateSnapshot, UrlTree } from '@angular/router';
 import { StorageService } from './storage.service';
 import { AuthService } from './auth.service';
 import { UserInfoDto } from '../interfaces';
+import { CognitoConfigService } from './cognito-config.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class LoginService {
-  constructor(private _authService: AuthService, private _storageService: StorageService, private _router: Router) {}
+  constructor(
+    private _authService: AuthService,
+    private _storageService: StorageService,
+    private _router: Router,
+    private _cognitoConfig: CognitoConfigService
+  ) {}
 
   public async isAuthenticated(): Promise<boolean> {
     return !(await this._authService.hasTokenExpired());
@@ -32,7 +38,7 @@ export class LoginService {
       console.debug('code exchange happened successfully');
     } else if (error) {
       console.debug('error from server');
-      return Promise.resolve(this._router.createUrlTree(['error/403']));
+      return Promise.resolve(this._router.createUrlTree([`${this._cognitoConfig.errorPage}/403`]));
     }
     return Promise.resolve(true);
   }

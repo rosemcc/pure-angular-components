@@ -13,4 +13,5 @@ export class CognitoConfigService {
   public codeChallengeMethod: string;
   public scopes: string;
   public bearerTokenUrlFilter: string[];
+  public errorPage = 'error';
 }
