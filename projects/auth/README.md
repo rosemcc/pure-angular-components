@@ -41,6 +41,7 @@ export class AppAuthConfigService extends CognitoConfigService {
         this.cognitoUserPoolId = environment.auth.cognitoUserPoolId;
         this.scopes = environment.auth.scopes;
         this.redirectUri = environment.auth.redirectUri;
+        this.logoutUri = environment.auth.logout_uri;
         this.bearerTokenUrlFilter = environment.privateUrlKeyWords.whoNeedBearerToken;
     }
 }
