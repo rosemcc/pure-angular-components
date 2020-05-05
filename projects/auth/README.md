@@ -41,78 +41,76 @@ export class AppAuthConfigService extends CognitoConfigService {
         this.cognitoUserPoolId = environment.auth.cognitoUserPoolId;
         this.scopes = environment.auth.scopes;
         this.redirectUri = environment.auth.redirectUri;
+        this.logoutUri = environment.auth.logout_uri;
         this.bearerTokenUrlFilter = environment.privateUrlKeyWords.whoNeedBearerToken;
     }
 }
 ```
 
-Now from your app component you can hook in to the redirects of the library. Import login service and implements OnInit:
+Import guards from library and add it to your routes, here is an example:
 
 ```
-import { Component, OnInit } from '@angular/core';
+import { AuthGuard, LoginSuccessGuard } from '@uoa/auth';
 
-import { Platform } from '@ionic/angular';
-import { SplashScreen } from '@ionic-native/splash-screen/ngx';
-import { StatusBar } from '@ionic-native/status-bar/ngx';
-import { LoginService } from '@uoa/auth';
+const routes: Routes = [
+  {
+    path: '',
+    redirectTo: 'home',
+    pathMatch: 'full',
+  },
 
-@Component({
-  selector: 'app-root',
-  templateUrl: 'app.component.html',
-  styleUrls: ['app.component.scss'],
-})
-export class AppComponent implements OnInit {
-  constructor(
-    private platform: Platform,
-    private splashScreen: SplashScreen,
-    private statusBar: StatusBar,
-    private loginService: LoginService
-  ) {
-    this.initializeApp();
-  }
-
-  initializeApp() {
-    this.platform.ready().then(() => {
-      this.statusBar.styleDefault();
-      this.splashScreen.hide();
-    });
-  }
-
-  async ngOnInit() {
-    this.platform.ready().then(async () => {
-      await this.loginService.loginSuccess();
-    });
-  }
-}
-```
-
-Create a authGuard and hook authentication and login methods from Login Service of library:
-
-```
-import { Injectable } from '@angular/core';
-import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
-
-import { LoginService } from '@uoa/auth';
-
-@Injectable({
-  providedIn: 'root',
-})
-export class AuthGuard implements CanActivate {
-  constructor(private loginService: LoginService) {}
-  async canActivate(next: ActivatedRouteSnapshot, state: RouterStateSnapshot) {
-    return !!(await this.loginService.doLogin(state.url));
-  }
-}
-```
-
-Add guard to your routes.
-
-```
-{
+  {
+    path: 'home',
+    canActivate: [LoginSuccessGuard],
+    loadChildren: () => import('./pages/home/home.module').then((m) => m.HomePageModule),
+  },
+  {
     path: 'protected',
     canActivate: [AuthGuard],
     loadChildren: () => import('./pages/protected/protected.module').then((m) => m.ProtectedPageModule),
   },
+  {
+    path: '**',
+    redirectTo: '/home',
+  },
+];
+```
+
+Add `LoginSuccessGuard` to default route if you are not protecting all pages.
+
+If you want to make whole app protected then yours routes will be as follow:
+
+```
+import { AuthGuard } from '@uoa/auth';
+
+const routes: Routes = [
+  {
+    path: '',
+    redirectTo: 'home',
+    pathMatch: 'full',
+  },
+
+  {
+    path: 'home',
+    canActivate: [AuthGuard],
+    loadChildren: () => import('./pages/home/home.module').then((m) => m.HomePageModule),
+  },
+  {
+    path: 'protected',
+    canActivate: [AuthGuard],
+    loadChildren: () => import('./pages/protected/protected.module').then((m) => m.ProtectedPageModule),
+  },
+  {
+    path: '**',
+    redirectTo: '/home',
+  },
+];
+```
+
+In order to get loggedin user details, use method:
+
+```
+this.loginService.getUserInfo();
 ```
 
 In order to check if user is authenticated or not, use method:
@@ -123,7 +121,13 @@ this.loginService.isAuthenticated();
 
 It returns Promise<boolean>.
 
-## Install Peer dependencies
+In order to logout user, use method:
+
+```
+this.loginService.logout();
+```
+
+## Peer dependencies
 
 Install peer dependencies :
 

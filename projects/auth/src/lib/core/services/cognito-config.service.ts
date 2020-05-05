@@ -9,7 +9,9 @@ export class CognitoConfigService {
   public cognitoDomain: string;
   public cognitoClientId: string;
   public redirectUri: string;
+  public logoutUri: string;
   public codeChallengeMethod: string;
   public scopes: string;
   public bearerTokenUrlFilter: string[];
+  public errorPage = 'error';
 }

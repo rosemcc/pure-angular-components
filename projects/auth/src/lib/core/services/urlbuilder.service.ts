@@ -30,7 +30,7 @@ export class UrlBuilder {
       discoveryEndpoint: this._discoveryEndpoint,
       authorizeEndpoint: urls.authorization_endpoint,
       tokenEndpoint: urls.token_endpoint,
-      logoutUrl: `https://${config.cognitoDomain}.auth.${config.cognitoAwsRegion}/logout`,
+      logoutUrl: `https://${config.cognitoDomain}.auth.${config.cognitoAwsRegion}.amazoncognito.com/logout`,
       redirectUrl: config.redirectUri,
     };
   }

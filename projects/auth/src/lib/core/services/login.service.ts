@@ -1,10 +1,10 @@
 import { Injectable } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
-import { filter, tap } from 'rxjs/operators';
+import { Router, RouterStateSnapshot, UrlTree } from '@angular/router';
 
 import { StorageService } from './storage.service';
 import { AuthService } from './auth.service';
 import { UserInfoDto } from '../interfaces';
+import { CognitoConfigService } from './cognito-config.service';
 
 @Injectable({
   providedIn: 'root',
@@ -12,9 +12,9 @@ import { UserInfoDto } from '../interfaces';
 export class LoginService {
   constructor(
     private _authService: AuthService,
-    private _route: ActivatedRoute,
     private _storageService: StorageService,
-    private _router: Router
+    private _router: Router,
+    private _cognitoConfig: CognitoConfigService
   ) {}
 
   public async isAuthenticated(): Promise<boolean> {
@@ -26,21 +26,21 @@ export class LoginService {
     return await this._authService.obtainValidAccessToken();
   }
 
-  public async loginSuccess(): Promise<void> {
-    await this._route.queryParamMap
-      .pipe(
-        filter((params) => !!params),
-        tap(async (param) => {
-          if (param.get('code')) {
-            await this._authService.exchangeCodeForTokens(param.get('code'));
-            console.debug('code exchange happened successfully');
-          } else if (param.get('error')) {
-            console.debug('error from server');
-            this._router.navigate(['error/403']);
-          }
-        })
-      )
-      .toPromise();
+  /**
+   *  It is to handle login success case only to use returned code to get token, not Authentication.
+   *  So it should always return true or redirect if there is an error from server.
+   */
+  async loginSuccess(state: RouterStateSnapshot): Promise<boolean | UrlTree> {
+    const code = state.root.queryParamMap.get('code');
+    const error = state.root.queryParamMap.get('error');
+    if (code) {
+      await this._authService.exchangeCodeForTokens(code);
+      console.debug('code exchange happened successfully');
+    } else if (error) {
+      console.debug('error from server');
+      return Promise.resolve(this._router.createUrlTree([`${this._cognitoConfig.errorPage}/403`]));
+    }
+    return Promise.resolve(true);
   }
 
   public async getUserInfo(): Promise<UserInfoDto> {
