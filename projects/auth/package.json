@@ -1,7 +1,8 @@
 {
   "name": "@uoa/auth",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "author": "Mohsin Baig <mohsin.baig@auckland.ac.nz>",
+  "license": "MIT",
   "keywords": [
     "uoa",
     "auth",
