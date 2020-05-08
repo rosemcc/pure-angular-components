@@ -1,7 +1,8 @@
-import { Injectable } from '@angular/core';
+import { Inject, Injectable } from '@angular/core';
 import { Router, RouterStateSnapshot, UrlTree } from '@angular/router';
 
-import { StorageService } from './storage.service';
+import { LOCAL_STORAGE, StorageService } from 'ngx-webstorage-service';
+
 import { AuthService } from './auth.service';
 import { UserInfoDto } from '../interfaces';
 import { CognitoConfigService } from './cognito-config.service';
@@ -12,7 +13,7 @@ import { CognitoConfigService } from './cognito-config.service';
 export class LoginService {
   constructor(
     private _authService: AuthService,
-    private _storageService: StorageService,
+    @Inject(LOCAL_STORAGE) private _storageService: StorageService,
     private _router: Router,
     private _cognitoConfig: CognitoConfigService
   ) {}
@@ -22,7 +23,7 @@ export class LoginService {
   }
 
   public async doLogin(targetReturnUrl?: string): Promise<boolean> {
-    this._storageService.setItem('targetUrl', targetReturnUrl);
+    this._storageService.set('targetUrl', targetReturnUrl);
     return await this._authService.obtainValidAccessToken();
   }
 

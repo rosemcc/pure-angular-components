@@ -1,6 +1,6 @@
-import { Injectable } from '@angular/core';
+import { Inject, Injectable } from '@angular/core';
 import { lib, SHA256, enc } from 'crypto-js';
-import { StorageService } from './storage.service';
+import { LOCAL_STORAGE, StorageService } from 'ngx-webstorage-service';
 import { BehaviorSubject } from 'rxjs';
 
 export interface ChallengePair {
@@ -14,10 +14,10 @@ export interface ChallengePair {
 export class PkceService {
   public challengePair$: BehaviorSubject<ChallengePair> = new BehaviorSubject(null);
 
-  constructor(private storageService: StorageService) {}
+  constructor(@Inject(LOCAL_STORAGE) private _storageService: StorageService) {}
 
   public clearChallengeFromStorage(): void {
-    this.storageService.removeItem('codeVerifier');
+    this._storageService.remove('codeVerifier');
   }
 
   public loadChallengePair(): void {
@@ -34,12 +34,12 @@ export class PkceService {
   public generateChallengePair(): void {
     const codeVerifier = this._stripSymbols(lib.WordArray.random(32).toString(enc.Base64));
     const codeChallenge = this._stripSymbols(SHA256(codeVerifier).toString(enc.Base64));
-    this.storageService.setItem('codeVerifier', codeVerifier);
+    this._storageService.set('codeVerifier', codeVerifier);
     this.challengePair$.next({ codeChallenge, codeVerifier });
   }
 
   private async _challengeFromStorage(): Promise<ChallengePair> {
-    const codeVerifier = await this.storageService.getItem('codeVerifier');
+    const codeVerifier = await this._storageService.get('codeVerifier');
     if (!codeVerifier) return null;
     return { codeChallenge: null, codeVerifier };
   }

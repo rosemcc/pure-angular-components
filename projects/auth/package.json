@@ -1,7 +1,8 @@
 {
-  "name": "@uoa/auth",
-  "version": "0.0.3",
+  "name": "uoa-auth-angular",
+  "version": "0.0.1",
   "author": "Mohsin Baig <mohsin.baig@auckland.ac.nz>",
+  "description": "Modified version of @uoa/auth, with Ionic dependencies removed.",
   "license": "MIT",
   "keywords": [
     "uoa",
@@ -9,7 +10,7 @@
     "auth-library",
     "Authentication",
     "Authentication AWS Cognito",
-    "Ionic / Angular Library"
+    "Angular Library"
   ],
   "peerDependencies": {
     "@angular/common": ">=8.0.2",
@@ -17,7 +18,8 @@
     "crypto-js": "^4.0.0",
     "ngx-take-until-destroy": "^5.4.0",
     "tslib": ">=1.9.0",
-    "@ionic/storage": "^2.2.0",
+    "ngx-webstorage-service": "^4.1.0",
     "@uoa/error-pages": ">=0.0.5"
-  }
+  },
+  "devDependencies": {}
 }

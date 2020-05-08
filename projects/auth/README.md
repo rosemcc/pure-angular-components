@@ -5,17 +5,16 @@
 Install library using command
 
 ```
-npm install @uoa/auth
+npm install uoa-auth-angular
 ```
 
 In your app.module.ts import following, eg:
 
 ```
-import { IonicStorageModule } from '@ionic/storage';
-import { AuthModule, CognitoConfigService } from '@uoa/auth';
+import { AuthModule, CognitoConfigService } from 'uoa-auth-angular';
 ```
 
-Include `AuthModule, IonicStorageModule.forRoot()` in your imports[], but include CognitoConfig as a provider:
+Include `AuthModule` in your imports[], but include CognitoConfig as a provider:
 
 `{ provide: CognitoConfigService, useClass: AppAuthConfigService }`
 
@@ -24,7 +23,7 @@ You will need to create this AppAuthConfigService class, which assigns each prop
 ```
 import { Injectable } from '@angular/core';
 
-import { CognitoConfigService } from '@uoa/auth';
+import { CognitoConfigService } from 'uoa-auth-angular';
 
 import { environment } from 'src/environments/environment';
 
@@ -50,7 +49,7 @@ export class AppAuthConfigService extends CognitoConfigService {
 Import guards from library and add it to your routes, here is an example:
 
 ```
-import { AuthGuard, LoginSuccessGuard } from '@uoa/auth';
+import { AuthGuard, LoginSuccessGuard } from 'uoa-auth-angular';
 
 const routes: Routes = [
   {
@@ -81,7 +80,7 @@ Add `LoginSuccessGuard` to default route if you are not protecting all pages.
 If you want to make whole app protected then yours routes will be as follow:
 
 ```
-import { AuthGuard } from '@uoa/auth';
+import { AuthGuard } from 'uoa-auth-angular';
 
 const routes: Routes = [
   {
@@ -132,7 +131,7 @@ this.loginService.logout();
 Install peer dependencies :
 
 ```
-npm install crypto-js ngx-take-until-destroy @ionic/storage @uoa/error-pages
+npm install crypto-js ngx-take-until-destroy ngx-webstorage-service @uoa/error-pages
 ```
 
 In your app.module.ts import ErrorPagesModule, eg:

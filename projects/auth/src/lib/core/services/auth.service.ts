@@ -1,17 +1,17 @@
-import { Injectable, OnDestroy } from '@angular/core';
+import { Inject, Injectable, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 
 import { ReplaySubject, combineLatest } from 'rxjs';
 import { finalize, filter, take } from 'rxjs/operators';
 import { untilDestroyed } from 'ngx-take-until-destroy';
+import { LOCAL_STORAGE, StorageService } from 'ngx-webstorage-service';
 
 import { BypassErrorService } from '@uoa/error-pages';
 
 import { Auth2UrlsDto, UserInfoDto, Cognito2UrlsDto } from '../interfaces';
 import { UrlBuilder } from './urlbuilder.service';
 import { CognitoConfigService } from './cognito-config.service';
-import { StorageService } from './storage.service';
 import { PkceService } from './pkce.service';
 
 @Injectable({
@@ -27,7 +27,7 @@ export class AuthService implements OnDestroy {
     private _urlBuilder: UrlBuilder,
     private _pkceService: PkceService,
     private _cognitoConfig: CognitoConfigService,
-    private _storageService: StorageService,
+    @Inject(LOCAL_STORAGE) private _storageService: StorageService,
     private _bypassErrorService: BypassErrorService
   ) {
     this._cognitoUrls$ = this._urlBuilder.cognitoUrls;
@@ -43,7 +43,7 @@ export class AuthService implements OnDestroy {
   ngOnDestroy() {}
 
   public async hasTokenExpired(): Promise<boolean> {
-    const expiresAt = await this._storageService.getItem('expiresAt');
+    const expiresAt = await this._storageService.get('expiresAt');
     if (!expiresAt) return true;
 
     // be careful expiresAt is in seconds and Date.now() in milliseconds
@@ -53,16 +53,16 @@ export class AuthService implements OnDestroy {
   public async obtainValidAccessToken() {
     if (await this.hasTokenExpired()) {
       // check if we have a refreshToken
-      const refreshToken = await this._storageService.getItem('refreshToken');
+      const refreshToken = await this._storageService.get('refreshToken');
       if (refreshToken) {
         await this._exchangeRefreshTokenForTokens(refreshToken);
-        return await this._storageService.getItem('accessToken');
+        return await this._storageService.get('accessToken');
       } else {
         // invalid token and no refresh token = start over
         return this._navigateToAuthUrl();
       }
     } else {
-      const token = await this._storageService.getItem('accessToken');
+      const token = await this._storageService.get('accessToken');
       // some evil developer probably deleted the token from storage
       if (!token) {
         return this._navigateToAuthUrl();
@@ -110,14 +110,14 @@ export class AuthService implements OnDestroy {
   }
 
   public returnToTargetRoute() {
-    this._storageService.getItem('targetUrl').then((res) => {
+    this._storageService.get('targetUrl').then((res) => {
       const url = res ? res : '/';
       this._router.navigate([url]);
     });
   }
 
   public async getUserInfos(): Promise<UserInfoDto> {
-    const idToken = await this._storageService.getItem('idToken');
+    const idToken = await this._storageService.get('idToken');
     const userInfos: UserInfoDto = {};
     if (idToken) {
       const decodedToken = this._parseJwt(idToken);
@@ -143,18 +143,18 @@ export class AuthService implements OnDestroy {
     const decodedToken = this._parseJwt(tokens.id_token);
 
     // store auth data in storage
-    this._storageService.setItem('refreshToken', tokens.refresh_token);
-    this._storageService.setItem('accessToken', tokens.access_token);
-    this._storageService.setItem('idToken', tokens.id_token);
-    this._storageService.setItem('expiresAt', decodedToken.exp);
+    this._storageService.set('refreshToken', tokens.refresh_token);
+    this._storageService.set('accessToken', tokens.access_token);
+    this._storageService.set('idToken', tokens.id_token);
+    this._storageService.set('expiresAt', decodedToken.exp);
   }
 
   private _clearOurTokens() {
-    this._storageService.removeItem('refreshToken');
-    this._storageService.removeItem('accessToken');
-    this._storageService.removeItem('idToken');
-    this._storageService.removeItem('expiresAt');
-    this._storageService.removeItem('targetUrl');
+    this._storageService.remove('refreshToken');
+    this._storageService.remove('accessToken');
+    this._storageService.remove('idToken');
+    this._storageService.remove('expiresAt');
+    this._storageService.remove('targetUrl');
     this._pkceService.clearChallengeFromStorage();
   }
 
