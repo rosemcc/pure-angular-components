@@ -1,7 +1,8 @@
 {
-  "name": "@uoa/error-pages",
-  "version": "0.0.4",
+  "name": "uoa-error-pages-angular",
+  "version": "0.0.1",
   "author": "Mohsin Baig <mohsin.baig@auckland.ac.nz>",
+  "description": "Modified from @uoa/error-pages. Removed Ionic dependencies for pure Angular apps.",
   "keywords": [
     "uoa",
     "error-pages",

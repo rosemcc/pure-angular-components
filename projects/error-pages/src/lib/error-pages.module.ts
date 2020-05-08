@@ -1,7 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { IonicModule } from '@ionic/angular';
 import { HeaderComponent } from './components/header/header.component';
 import { FooterComponent } from './components/footer/footer.component';
 import { ErrorPage } from './pages/error/error.page';
@@ -11,7 +10,7 @@ import { ServerErrorInterceptor } from './core/interceptors/server-error.interce
 
 @NgModule({
   declarations: [ErrorPage, HeaderComponent, FooterComponent],
-  imports: [IonicModule, CommonModule, RouterModule.forChild([{ path: '', component: ErrorPage }])],
+  imports: [CommonModule, RouterModule.forChild([{ path: '', component: ErrorPage }])],
   entryComponents: [ErrorPage],
   providers: [
     { provide: HTTP_INTERCEPTORS, multi: true, useClass: ClientErrorInterceptor },

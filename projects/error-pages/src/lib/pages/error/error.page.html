@@ -1,16 +1,14 @@
-<ion-content>
-  <div class="content-wrapper">
-    <app-header></app-header>
-    <div class="inner-content">
-      <div class="header-padding-no-progress-bar margin-h-10vw enlarged-font">
-        <div class="padding-top-2xl">
-          <h1 class="font-xxl">{{errorObject.title}}</h1>
-          <div class="padding-top-2xl" [innerHtml]="errorObject.content">
-            {{errorObject.content}}
-          </div>
+<div class="content-wrapper">
+  <app-header></app-header>
+  <div class="inner-content">
+    <div class="header-padding-no-progress-bar margin-h-10vw enlarged-font">
+      <div class="padding-top-2xl">
+        <h1 class="font-xxl">{{errorObject.title}}</h1>
+        <div class="padding-top-2xl" [innerHtml]="errorObject.content">
+          {{errorObject.content}}
         </div>
       </div>
     </div>
-    <app-footer></app-footer>
   </div>
-</ion-content>
+  <app-footer></app-footer>
+</div>

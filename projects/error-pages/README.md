@@ -5,12 +5,12 @@
 Install library using command
 
 ```
-npm install @uoa/error-pages
+npm install uoa-error-pages-angular
 ```
 
 In your app.module.ts import ErrorPagesModule, eg:
 
-`import { ErrorPagesModule } from '@uoa/error-pages';`
+`import { ErrorPagesModule } from 'uoa-error-pages-angular';`
 
 Include ErrorPagesModule in your imports[].
 
@@ -20,7 +20,7 @@ Create an ErrorRoutingModule to define the error page child route
 import { NgModule } from '@angular/core';
 import { RouterModule } from '@angular/router';
 
-import { ErrorPagesModule, ErrorPage } from '@uoa/error-pages';
+import { ErrorPagesModule, ErrorPage } from 'uoa-error-pages-angular';
 
 @NgModule({
   imports: [ErrorPagesModule, RouterModule.forChild([{ path: '', component: ErrorPage }])],
@@ -40,7 +40,7 @@ Go to routing module of application and add error route to routes. Here is an ex
 
 If you want to handle specific error code for any endpoint inside project. import BypassErrorService to your Service
 
-`import { BypassErrorService } from '@uoa/error-pages';`
+`import { BypassErrorService } from 'uoa-error-pages-angular';`
 
 and call following method before your api call:
 
@@ -66,7 +66,7 @@ If you want to override default error codes and templates, include UoaErrorsConf
 You will need to create this AppErrorsConfig class, where you assign new values to existing objects or add new objects properties. Here is an example:
 
 ```
-import { UoaErrorsConfig } from '@uoa/error-pages';
+import { UoaErrorsConfig } from 'uoa-error-pages-angular';
 
 export class AppErrorsConfig extends UoaErrorsConfig {
   constructor() {
