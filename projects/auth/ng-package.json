@@ -7,7 +7,7 @@
       "crypto-js": "crypto-js",
       "ngx-take-until-destroy": "ngx-take-until-destroy",
       "ngx-webstorage-service": "^4.1.0",
-      "@uoa/error-pages": "@uoa/error-pages"
+      "uoa-error-pages-angular": "uoa-error-pages-angular"
     }
   }
 }

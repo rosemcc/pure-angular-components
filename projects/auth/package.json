@@ -19,7 +19,7 @@
     "ngx-take-until-destroy": "^5.4.0",
     "tslib": ">=1.9.0",
     "ngx-webstorage-service": "^4.1.0",
-    "@uoa/error-pages": ">=0.0.5"
+    "uoa-error-pages-angular": ">=0.0.1"
   },
   "devDependencies": {}
 }

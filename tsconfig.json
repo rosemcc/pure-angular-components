@@ -14,10 +14,13 @@
     "typeRoots": ["node_modules/@types"],
     "lib": ["es2018", "dom"],
     "paths": {
+      "@angular/*": [
+        "node_modules/@angular/*"
+      ],
       "uoa-controls": ["dist/uoa-controls"],
       "uoa-controls/*": ["dist/uoa-controls/*"],
       "auth": ["dist/auth/auth", "dist/auth"],
-      "@uoa/error-pages": ["dist/error-pages/error-pages", "dist/error-pages"]
+      "uoa-error-pages-angular": ["dist/error-pages/error-pages", "dist/error-pages"]
     }
   },
   "angularCompilerOptions": {

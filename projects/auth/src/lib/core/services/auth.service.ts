@@ -7,7 +7,7 @@ import { finalize, filter, take } from 'rxjs/operators';
 import { untilDestroyed } from 'ngx-take-until-destroy';
 import { LOCAL_STORAGE, StorageService } from 'ngx-webstorage-service';
 
-import { BypassErrorService } from '@uoa/error-pages';
+import { BypassErrorService } from 'uoa-error-pages-angular';
 
 import { Auth2UrlsDto, UserInfoDto, Cognito2UrlsDto } from '../interfaces';
 import { UrlBuilder } from './urlbuilder.service';
@@ -43,7 +43,7 @@ export class AuthService implements OnDestroy {
   ngOnDestroy() {}
 
   public async hasTokenExpired(): Promise<boolean> {
-    const expiresAt = await this._storageService.get('expiresAt');
+    const expiresAt = this._storageService.get('expiresAt');
     if (!expiresAt) return true;
 
     // be careful expiresAt is in seconds and Date.now() in milliseconds
@@ -53,16 +53,16 @@ export class AuthService implements OnDestroy {
   public async obtainValidAccessToken() {
     if (await this.hasTokenExpired()) {
       // check if we have a refreshToken
-      const refreshToken = await this._storageService.get('refreshToken');
+      const refreshToken = this._storageService.get('refreshToken');
       if (refreshToken) {
         await this._exchangeRefreshTokenForTokens(refreshToken);
-        return await this._storageService.get('accessToken');
+        return this._storageService.get('accessToken');
       } else {
         // invalid token and no refresh token = start over
         return this._navigateToAuthUrl();
       }
     } else {
-      const token = await this._storageService.get('accessToken');
+      const token = this._storageService.get('accessToken');
       // some evil developer probably deleted the token from storage
       if (!token) {
         return this._navigateToAuthUrl();
@@ -110,14 +110,13 @@ export class AuthService implements OnDestroy {
   }
 
   public returnToTargetRoute() {
-    this._storageService.get('targetUrl').then((res) => {
-      const url = res ? res : '/';
-      this._router.navigate([url]);
-    });
+    const targetUrl = this._storageService.get('targetUrl');
+    const url = targetUrl ? targetUrl : '/';
+    this._router.navigate([url]);
   }
 
   public async getUserInfos(): Promise<UserInfoDto> {
-    const idToken = await this._storageService.get('idToken');
+    const idToken = this._storageService.get('idToken');
     const userInfos: UserInfoDto = {};
     if (idToken) {
       const decodedToken = this._parseJwt(idToken);

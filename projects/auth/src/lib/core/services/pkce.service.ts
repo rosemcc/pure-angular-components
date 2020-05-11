@@ -39,7 +39,7 @@ export class PkceService {
   }
 
   private async _challengeFromStorage(): Promise<ChallengePair> {
-    const codeVerifier = await this._storageService.get('codeVerifier');
+    const codeVerifier = this._storageService.get('codeVerifier');
     if (!codeVerifier) return null;
     return { codeChallenge: null, codeVerifier };
   }

@@ -131,12 +131,12 @@ this.loginService.logout();
 Install peer dependencies :
 
 ```
-npm install crypto-js ngx-take-until-destroy ngx-webstorage-service @uoa/error-pages
+npm install crypto-js ngx-take-until-destroy ngx-webstorage-service uoa-error-pages-angular
 ```
 
 In your app.module.ts import ErrorPagesModule, eg:
 
-`import { ErrorPagesModule } from '@uoa/error-pages';`
+`import { ErrorPagesModule } from 'uoa-error-pages-angular';`
 
 Include ErrorPagesModule in your imports[].
 
@@ -146,7 +146,7 @@ Create an ErrorRoutingModule to define the error page child route
 import { NgModule } from '@angular/core';
 import { RouterModule } from '@angular/router';
 
-import { ErrorPagesModule, ErrorPage } from '@uoa/error-pages';
+import { ErrorPagesModule, ErrorPage } from 'uoa-error-pages-angular';
 
 @NgModule({
   imports: [ErrorPagesModule, RouterModule.forChild([{ path: '', component: ErrorPage }])],
